@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:lako_app/providers/settings_provider.dart';
+import 'package:lako_app/widgets/dialogs/distance_selection_dialog.dart';
 import 'package:lako_app/widgets/dialogs/map_mode_dialog.dart';
+import 'package:lako_app/widgets/dialogs/radius_selection_dialog.dart';
 import 'package:lako_app/widgets/drawer/drawer.dart';
+import 'package:provider/provider.dart';
+
+import '../../utils/extensions.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -10,8 +17,10 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  late SettingsProvider _settingsProvider;
   @override
   Widget build(BuildContext context) {
+    _settingsProvider = Provider.of<SettingsProvider>(context, listen: true);
     return Scaffold(
       appBar: AppBar(title: Text("Settings")),
       body: Column(
@@ -23,10 +32,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Divider(),
           _mapMode(),
           Divider(),
-          ListTile(
-            title: Text("Distance Units"),
-            leading: Icon(Icons.social_distance),
-          ),
+          _distanceUnits(),
           Divider(),
           ListTile(
             title: Text("Notifications"),
@@ -41,6 +47,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // ),
           ),
           Divider(),
+          _radius(),
         ],
       ),
       drawer: MyDrawer().drawer(context, 'settings'),
@@ -51,8 +58,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return ListTile(
       title: Text("Map Mode"),
       leading: Icon(Icons.map),
-      onTap: (){
-        MapModeDialog.showMapModeDialog(context);
+      trailing: Text(_settingsProvider.settings.mapType
+          .toString()
+          .replaceAll("MapType.", "")
+          .capitalizeFirst()),
+      onTap: () {
+        MapModeDialog.showMapModeDialog(context, (MapType type) {
+          _settingsProvider.setMapType(type);
+        });
+      },
+    );
+  }
+
+  Widget _distanceUnits() {
+    return ListTile(
+      title: Text("Distance Units"),
+      leading: Icon(Icons.social_distance),
+      trailing: Text(_settingsProvider.settings.distanceUnits),
+      onTap: () {
+        DistanceSelectionDialog.showDistanceSelectionDialog(context,
+            (String distance) {
+          _settingsProvider.setDistance(distance);
+        });
+      },
+    );
+  }
+
+  Widget _radius() {
+    return ListTile(
+      title: Text("Radius"),
+      leading: Icon(Icons.circle_outlined),
+      trailing: Text(_settingsProvider.settings.radius.toString()),
+      onTap: () {
+        RadiusSelectionDialog.showRadiusSelectionDialog(context,
+            (double radius) {
+          _settingsProvider.setRadius(radius);
+        });
       },
     );
   }
