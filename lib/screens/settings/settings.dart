@@ -28,6 +28,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             title: Text("My Account"),
             leading: Icon(Icons.person),
+            onTap: () {
+              Navigator.pushNamed(context, "/myaccount");
+            },
           ),
           Divider(),
           _mapMode(),
@@ -37,20 +40,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             title: Text("Notifications"),
             leading: Icon(Icons.notifications_active),
-            // trailing: Switch(
-            //   onChanged: toggleSwitch,
-            //   value: isSwitched,
-            //   activeColor: Colors.blue,
-            //   activeTrackColor: Colors.yellow,
-            //   inactiveThumbColor: Colors.redAccent,
-            //   inactiveTrackColor: Colors.orange,
-            // ),
+            trailing: Switch(
+              onChanged: (val) {
+                _settingsProvider.setNotification(val);
+              },
+              value: _settingsProvider.settings.notification,
+            ),
           ),
           Divider(),
           _radius(),
         ],
       ),
-      drawer: MyDrawer().drawer(context, 'settings'),
+      // drawer: MyDrawer().drawer(context, 'settings'),
     );
   }
 

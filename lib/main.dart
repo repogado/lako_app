@@ -38,7 +38,9 @@ class MyApp extends StatelessWidget {
           // Notice that the counter didn't reset back to zero; the application
           // is not restarted.
           primaryColor: Color(0xffFB4F00),
-          primarySwatch: Colors.blue,
+          appBarTheme: AppBarTheme(
+            color: Color(0xffFB4F00),
+          ),
         ),
         onGenerateRoute: RouteGenerator.generateRoute,
       ),

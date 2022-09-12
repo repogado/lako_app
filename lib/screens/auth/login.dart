@@ -25,6 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.symmetric(
@@ -36,7 +37,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SizedBox(height: SizeConfig.blockSizeVertical * 2),
-                  Icon(Icons.abc, size: 100),
+                  Image.asset(
+                    "assets/logo.jpg",
+                    width: 200,
+                  ),
                   SizedBox(height: SizeConfig.blockSizeVertical * 2),
                   AuthTextField(
                     textEditingController: _emailTextController,
@@ -89,6 +93,49 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                     title: "SIGN UP",
                   ),
+                  SizedBox(height: 20),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey,
+                          blurRadius: 4,
+                          offset: Offset(0, 1), // Shadow position
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      child: InkWell(
+                        onTap: () {},
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 20),
+                          child: Row(mainAxisSize: MainAxisSize.min, children: [
+                            Image.asset("assets/google.png", width: 30),
+                            SizedBox(width: 15),
+                            Text(
+                              "Sign in with Google",
+                              style: TextStyle(
+                                  fontSize: 16, color: Colors.grey[500]),
+                            )
+                          ]),
+                        ),
+                      ),
+                    ),
+                  )
+                  // ElevatedButton.icon(
+                  //   icon: const Icon(
+                  //     Icons.gmail,
+                  //     color: Colors.white,
+                  //   ),
+                  //   onPressed: () {},
+                  //   label: Text(
+                  //     "Schedule",
+                  //     style: const TextStyle(fontSize: 16, color: Colors.white),
+                  //   ),
+                  //   style: ElevatedButton.styleFrom(),
+                  // )
                 ]),
           ),
         ),

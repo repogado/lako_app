@@ -12,7 +12,7 @@ class MyDrawer {
         children: [
           DrawerHeader(
             decoration: BoxDecoration(
-              color: Colors.blue,
+              color: Theme.of(context).primaryColor,
             ),
             child: Center(
               child: CircleAvatar(
@@ -30,6 +30,17 @@ class MyDrawer {
           _menuItem("Contact Us", context, route, "contact_us", Icons.phone),
           _menuItem("About Us", context, route, "about_us", Icons.info_outline),
           _menuItem("Settings", context, route, "settings", Icons.settings),
+          ListTile(
+            leading: Icon(Icons.exit_to_app),
+            selectedColor: Theme.of(context).primaryColor,
+            title: Text("Logout"),
+            onTap: () {
+              Navigator.pop(context);
+              // Navigator.of(context).pushNamedAndRemoveUntil(
+              //     '/$routeName', (Route<dynamic> routes) => false);
+              // Navigator.of(context).pushNamed('/$routeName');
+            },
+          ),
         ],
       ),
     );
@@ -40,12 +51,14 @@ class MyDrawer {
     return ListTile(
       leading: Icon(icon),
       selected: route == routeName,
+      selectedColor: Theme.of(context).primaryColor,
       title: Text(title),
       onTap: () {
         Navigator.pop(context);
         if (route != routeName) {
-          Navigator.of(context).pushNamedAndRemoveUntil(
-              '/$routeName', (Route<dynamic> routes) => false);
+          // Navigator.of(context).pushNamedAndRemoveUntil(
+          //     '/$routeName', (Route<dynamic> routes) => false);
+          Navigator.of(context).pushNamed('/$routeName');
         }
       },
     );

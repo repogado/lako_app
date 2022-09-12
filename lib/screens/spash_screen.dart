@@ -16,7 +16,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     // TODO: implement initState
     WidgetsBinding.instance!.addPostFrameCallback((_) async {
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 1000));
       Navigator.of(context).pushNamed('/login');
       // SelectionDialog.showSelectionDialog(context, (Choices choice) {
       //   log(choice.toString());
@@ -31,12 +31,11 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
-    return const Scaffold(
+    return Scaffold(
+      backgroundColor: Colors.white,
       body: Center(
-          child: Icon(  
-        Icons.abc,
-        size: 100,
-      )),
+        child: Image.asset("assets/logo.jpg"),
+      ),
     );
   }
 }

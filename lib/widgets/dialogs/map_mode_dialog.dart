@@ -22,9 +22,9 @@ class MapModeDialog {
                 },
               ),
               ListTile(
-                title: Text("Terrain"),
+                title: Text("Hybrid"),
                 onTap: () {
-                  onTap(MapType.terrain);
+                  onTap(MapType.hybrid);
                   Navigator.pop(context);
                 },
               ),

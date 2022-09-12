@@ -7,6 +7,7 @@ import 'package:lako_app/screens/chat/chat.dart';
 import 'package:lako_app/screens/contact_us/contact_us.dart';
 import 'package:lako_app/screens/home/home.dart';
 import 'package:lako_app/screens/notification/notification.dart';
+import 'package:lako_app/screens/settings/my_account.dart';
 import 'package:lako_app/screens/settings/settings.dart';
 import 'package:lako_app/screens/spash_screen.dart';
 
@@ -35,6 +36,8 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (context) => AboutUsScreen());
       case '/settings':
         return MaterialPageRoute(builder: (context) => SettingsScreen());
+      case '/myaccount':
+        return MaterialPageRoute(builder: (context) => MyAccountScreen());
       default:
         return _errorRoute();
     }

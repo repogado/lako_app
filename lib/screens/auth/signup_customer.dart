@@ -19,12 +19,11 @@ class _SignupCustomerState extends State<SignupCustomer> {
   final TextEditingController _password = TextEditingController();
   final TextEditingController _confirmPassword = TextEditingController();
 
-  
-
   @override
   Widget build(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.symmetric(
@@ -36,7 +35,10 @@ class _SignupCustomerState extends State<SignupCustomer> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 SizedBox(height: SizeConfig.blockSizeVertical * 2),
-                Icon(Icons.abc, size: 100),
+                Image.asset(
+                  "assets/logo.jpg",
+                  width: 150,
+                ),
                 SizedBox(height: SizeConfig.blockSizeVertical * 2),
                 AuthTextField(
                   textEditingController: _firstName,
@@ -85,7 +87,8 @@ class _SignupCustomerState extends State<SignupCustomer> {
                   title: "Confirm Password",
                   isPassword: true,
                   validator: (value) {
-                    return Validations().signUpConfirmPasswordValidation(value, _password.text);
+                    return Validations()
+                        .signUpConfirmPasswordValidation(value, _password.text);
                   },
                 ),
                 SizedBox(height: SizeConfig.blockSizeVertical * 4),
@@ -94,7 +97,7 @@ class _SignupCustomerState extends State<SignupCustomer> {
                     if (_formKey.currentState!.validate()) {
                       // If the form is valid, display a snackbar. In the real world,
                       // you'd often call a server or save the information in a database.
-                      
+
                     }
                   },
                   title: 'SIGN UP',

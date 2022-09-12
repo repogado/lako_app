@@ -3,8 +3,10 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:lako_app/providers/settings_provider.dart';
 import 'package:lako_app/widgets/drawer/drawer.dart';
 import 'package:location/location.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -22,6 +24,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Circle? circle;
   bool _loading = true;
   List<Marker> _markers = [];
+
+  late SettingsProvider _settingsProvider;
 
   @override
   void initState() {
@@ -75,14 +79,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _settingsProvider = Provider.of<SettingsProvider>(context, listen: true);
     return Scaffold(
-      appBar: AppBar(title: Text("My Location")),
+      appBar: AppBar(
+        title: Text("My Location"),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: Icon(Icons.search),
+          ),
+          IconButton(
+            onPressed: () {},
+            icon: Icon(Icons.settings),
+          ),
+        ],
+      ),
       body: _loading
           ? const Center(
               child: CircularProgressIndicator(),
             )
           : GoogleMap(
-              mapType: MapType.hybrid,
+              mapType: _settingsProvider.settings.mapType,
               markers: Set.of({
                 ..._markers,
                 if (marker != null) marker!,

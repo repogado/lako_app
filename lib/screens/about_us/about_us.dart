@@ -16,7 +16,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
       body: const Center(
         child: Text('My Page!'),
       ),
-      drawer: MyDrawer().drawer(context, 'about_us'),
+      // drawer: MyDrawer().drawer(context, 'about_us'),
     );
     ;
   }

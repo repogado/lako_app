@@ -16,7 +16,7 @@ class _ChatScreenState extends State<ChatScreen> {
       body: const Center(
         child: Text('My Page!'),
       ),
-      drawer: MyDrawer().drawer(context, 'chat'),
+      // drawer: MyDrawer().drawer(context, 'chat'),
     );
   }
 }

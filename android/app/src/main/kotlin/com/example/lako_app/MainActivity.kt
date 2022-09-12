@@ -1,4 +1,4 @@
-package com.example.lako_app
+package com.cap.lako_app
 
 import io.flutter.embedding.android.FlutterActivity
 

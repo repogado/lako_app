@@ -16,7 +16,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       body: const Center(
         child: Text('My Page!'),
       ),
-      drawer: MyDrawer().drawer(context, 'notification'),
+      // drawer: MyDrawer().drawer(context, 'notification'),
     );
   }
 }
