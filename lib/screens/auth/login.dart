@@ -1,9 +1,17 @@
+import 'dart:developer';
+
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:lako_app/providers/auth_provider.dart';
 import 'package:lako_app/utils/form_validations.dart';
 import 'package:lako_app/utils/size_config.dart';
 import 'package:lako_app/widgets/buttons/def_button.dart';
+import 'package:lako_app/widgets/dialogs/loading_dialog.dart';
 import 'package:lako_app/widgets/dialogs/role_selection_dialog.dart';
+import 'package:lako_app/widgets/dialogs/snackbar_msg.dart';
 import 'package:lako_app/widgets/textfields/auth_textfield.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -21,9 +29,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   final TextEditingController _emailTextController = TextEditingController();
   final TextEditingController _passwordTextController = TextEditingController();
+
+  late AuthProvider _authProvider;
   final _formKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
+    _authProvider = Provider.of<AuthProvider>(context, listen: false);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -66,11 +79,44 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   DefButton(
-                    onPress: () {
+                    onPress: () async {
                       if (_formKey.currentState!.validate()) {
                         // If the form is valid, display a snackbar. In the real world,
                         // you'd often call a server or save the information in a database.
-                        Navigator.of(context).pushNamed('/home');
+                        showLoaderDialog(context);
+                        final aPIResponse = await _authProvider.login({
+                          "email": _emailTextController.text,
+                          "password": _passwordTextController.text,
+                          "is_via_gmail": false,
+                        });
+                        Navigator.pop(context);
+                        if (aPIResponse.success) {
+                          print('success');
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                              '/complete_setup',
+                              (Route<dynamic> routes) => false);
+                        } else {
+                          showNackbar(aPIResponse.msg, context);
+                        }
+
+                        // Navigator.of(context).pushNamed('/complete_setup');
+                        // DatabaseReference ref =
+                        //     FirebaseDatabase.instance.ref("lako/users/1");
+                        // await ref
+                        //     .set({
+                        //       "username": "john11",
+                        //       "password": "12345",
+                        //     });
+
+                        // final ref = FirebaseDatabase.instance.ref();
+                        // final snapshot = await ref.child('lako/users/2').get();
+                        // if (snapshot.exists) {
+                        //   print(snapshot.value);
+                        // } else {
+                        //   print('No data available.');
+                        // }
+                        // showLoaderDialog(context);
+
                       }
                     },
                     title: 'LOGIN',
@@ -78,18 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   DefButton(
                     mode: 2,
                     onPress: () {
-                      Choices choiced = Choices.customer;
-                      SelectionDialog.showSelectionDialog(context,
-                          (Choices choice) {
-                        choiced = choice;
-                      }, (val) {
-                        Navigator.pop(context);
-                        if (choiced == Choices.customer) {
-                          Navigator.of(context).pushNamed('/signupcustomer');
-                        } else {
-                          Navigator.of(context).pushNamed('/signupvendor');
-                        }
-                      });
+                      Navigator.of(context).pushNamed('/signupcustomer');
                     },
                     title: "SIGN UP",
                   ),
@@ -107,7 +142,25 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     child: Material(
                       child: InkWell(
-                        onTap: () {},
+                        onTap: () async {
+                          GoogleSignIn _googleSignIn = GoogleSignIn(scopes: [
+                            'email',
+                            // 'https://www.googleapis.com/auth/contacts.readonly'
+                          ]);
+                          final res = await _googleSignIn.signIn();
+                          showLoaderDialog(context);
+                          final aPIResponse =
+                              await _authProvider.loginViaGmail(res!);
+                          Navigator.pop(context);
+                          if (aPIResponse.success) {
+                            print('success');
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                                '/complete_setup',
+                                (Route<dynamic> routes) => false);
+                          } else {
+                            showNackbar(aPIResponse.msg, context);
+                          }
+                        },
                         child: Container(
                           padding: EdgeInsets.symmetric(
                               vertical: 10, horizontal: 20),

@@ -1,0 +1,56 @@
+{
+  "project_info": {
+    "project_number": "685191813485",
+    "firebase_url": "https://lako-981ff-default-rtdb.firebaseio.com",
+    "project_id": "lako-981ff",
+    "storage_bucket": "lako-981ff.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:685191813485:android:49c37816fff9531d3de264",
+        "android_client_info": {
+          "package_name": "com.cap.lako_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "685191813485-d50orplo7dp2orh4r9fqrqoqoni5diun.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.cap.lako_app",
+            "certificate_hash": "713288d03f97765a379f71ab1ce08fbf942c6c3c"
+          }
+        },
+        {
+          "client_id": "685191813485-vvcgovgsejjog4pq4cl9h1621bsa449q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.cap.lako_app",
+            "certificate_hash": "707f6e434635031863145f68a40e8b71a4cb7be0"
+          }
+        },
+        {
+          "client_id": "685191813485-9g74g2lbl4o8hmuiq00fh5fkg46q9cku.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCcwPwwH19QfKqUZnc7hGlg_2Nys80vIeM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "685191813485-9g74g2lbl4o8hmuiq00fh5fkg46q9cku.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

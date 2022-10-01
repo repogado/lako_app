@@ -5,7 +5,10 @@ import 'package:lako_app/screens/auth/signup_customer.dart';
 import 'package:lako_app/screens/auth/signup_vendor.dart';
 import 'package:lako_app/screens/chat/chat.dart';
 import 'package:lako_app/screens/contact_us/contact_us.dart';
+import 'package:lako_app/screens/home/complete_setup.dart';
 import 'package:lako_app/screens/home/home.dart';
+import 'package:lako_app/screens/home/select_vendor.dart';
+import 'package:lako_app/screens/home/vendor_home.dart';
 import 'package:lako_app/screens/notification/notification.dart';
 import 'package:lako_app/screens/settings/my_account.dart';
 import 'package:lako_app/screens/settings/settings.dart';
@@ -24,8 +27,14 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (context) => SignupVendorScreen());
       case '/signupcustomer':
         return MaterialPageRoute(builder: (context) => SignupCustomer());
+      case '/complete_setup':
+        return MaterialPageRoute(builder: (context) => CompleteSetup());
       case '/home':
         return MaterialPageRoute(builder: (context) => HomeScreen());
+      case '/vendor_selection':
+        return MaterialPageRoute(builder: (context) => VendorSelectionScreen());
+      case '/home_vendor':
+        return MaterialPageRoute(builder: (context) => VendorHomeScreen());
       case '/chat':
         return MaterialPageRoute(builder: (context) => ChatScreen());
       case '/notification':

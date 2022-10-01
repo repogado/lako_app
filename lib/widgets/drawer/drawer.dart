@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:lako_app/services/secure_storage_service.dart';
+import 'package:lako_app/widgets/dialogs/yes_no_dialog.dart';
+import 'package:restart_app/restart_app.dart';
 
 class MyDrawer {
-  Drawer drawer(BuildContext context, String route) {
+  Drawer drawer(BuildContext context, String route, String? name, String? type,
+      String? photoUrl) {
     return Drawer(
       // Add a ListView to the drawer. This ensures the user can scroll
       // through the options in the drawer if there isn't enough vertical
@@ -15,16 +19,33 @@ class MyDrawer {
               color: Theme.of(context).primaryColor,
             ),
             child: Center(
-              child: CircleAvatar(
-                backgroundImage: NetworkImage(
-                    "https://cdn-icons-png.flaticon.com/512/149/149071.png"),
-                radius: 50,
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    backgroundImage: NetworkImage(
+                      photoUrl!.isEmpty
+                          ? "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                          : photoUrl,
+                    ),
+                    radius: 40,
+                  ),
+                  SizedBox(height: 15),
+                  Text(
+                    name!,
+                    style: TextStyle(fontSize: 16, color: Colors.white),
+                  ),
+                  SizedBox(height: 5),
+                  Text(
+                    type!,
+                    style: TextStyle(color: Colors.white),
+                  )
+                ],
               ),
             ),
           ),
           _menuItem(
               "My Location", context, route, "home", Icons.location_on_rounded),
-          _menuItem("Chat", context, route, "chat", Icons.message),
+          // _menuItem("Chat", context, route, "chat", Icons.message),
           _menuItem("Notification", context, route, "notification",
               Icons.notifications_rounded),
           _menuItem("Contact Us", context, route, "contact_us", Icons.phone),
@@ -35,10 +56,16 @@ class MyDrawer {
             selectedColor: Theme.of(context).primaryColor,
             title: Text("Logout"),
             onTap: () {
-              Navigator.pop(context);
-              // Navigator.of(context).pushNamedAndRemoveUntil(
-              //     '/$routeName', (Route<dynamic> routes) => false);
-              // Navigator.of(context).pushNamed('/$routeName');
+              showYesNoDialog(
+                  context, "Logout", "Are you sure you want to Logout?",
+                  () async {
+                await SecureStorageService().deleteData("auth");
+                await SecureStorageService().deleteData("token");
+                Restart.restartApp();
+              });
+              // Navigator.pop(context);
+              //               SecureStorageService().writeData("auth", jsonEncode(res));
+              // SecureStorageService().writeData("token", res['access']);
             },
           ),
         ],

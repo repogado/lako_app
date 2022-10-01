@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:lako_app/models/response.dart';
+import 'package:lako_app/network/api_response.dart';
+import 'package:lako_app/providers/auth_provider.dart';
 import 'package:lako_app/utils/form_validations.dart';
 import 'package:lako_app/utils/size_config.dart';
 import 'package:lako_app/widgets/buttons/def_button.dart';
+import 'package:lako_app/widgets/dialogs/loading_dialog.dart';
 import 'package:lako_app/widgets/textfields/auth_textfield.dart';
+import 'package:provider/provider.dart';
 
 class SignupCustomer extends StatefulWidget {
   const SignupCustomer({Key? key}) : super(key: key);
@@ -19,9 +24,13 @@ class _SignupCustomerState extends State<SignupCustomer> {
   final TextEditingController _password = TextEditingController();
   final TextEditingController _confirmPassword = TextEditingController();
 
+  late AuthProvider _authProvider;
+  final _formKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
-    final _formKey = GlobalKey<FormState>();
+    _authProvider = Provider.of<AuthProvider>(context, listen: false);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -93,11 +102,28 @@ class _SignupCustomerState extends State<SignupCustomer> {
                 ),
                 SizedBox(height: SizeConfig.blockSizeVertical * 4),
                 DefButton(
-                  onPress: () {
+                  onPress: () async {
                     if (_formKey.currentState!.validate()) {
                       // If the form is valid, display a snackbar. In the real world,
                       // you'd often call a server or save the information in a database.
 
+                      showLoaderDialog(context);
+                      final aPIResponse = await _authProvider.signUp({
+                        "first_name": _firstName.text,
+                        "last_name": _lastName.text,
+                        "email": _email.text,
+                        "password": _password.text,
+                        "mobile_number": _mobileNumber.text,
+                        "is_active": true,
+                      });
+                      Navigator.pop(context);
+                      showNackbar(aPIResponse.msg);
+                      if (aPIResponse.success) {
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                            '/login', (Route<dynamic> routes) => false);
+                      }
+
+                      // Navigator.of(context).pushNamed('/$routeName');
                     }
                   },
                   title: 'SIGN UP',
@@ -108,5 +134,18 @@ class _SignupCustomerState extends State<SignupCustomer> {
         ),
       ),
     );
+  }
+
+  void showNackbar(String msg) {
+    final snackBar = SnackBar(
+      content: Text(msg),
+      action: SnackBarAction(
+        label: '',
+        onPressed: () {
+          // Some code to undo the change.
+        },
+      ),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 }

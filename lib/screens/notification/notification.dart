@@ -13,9 +13,32 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Notification")),
-      body: const Center(
-        child: Text('My Page!'),
-      ),
+      body: Column(children: [
+        ListTile(
+          leading: Icon(
+            Icons.storefront_sharp,
+            size: 50,
+          ),
+          title: Text("Balot vendor is detected on your device"),
+          subtitle: Text("6:00 PM, 1h 23min ago"),
+        ),
+        ListTile(
+          leading: Icon(
+            Icons.storefront_sharp,
+            size: 50,
+          ),
+          title: Text("Balot vendor is detected on your device"),
+          subtitle: Text("6:00 PM, 1h 23min ago"),
+        ),
+        ListTile(
+          leading: Icon(
+            Icons.storefront_sharp,
+            size: 50,
+          ),
+          title: Text("Balot vendor is detected on your device"),
+          subtitle: Text("6:00 PM, 1h 23min ago"),
+        ),
+      ]),
       // drawer: MyDrawer().drawer(context, 'notification'),
     );
   }

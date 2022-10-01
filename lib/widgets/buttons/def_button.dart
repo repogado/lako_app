@@ -26,6 +26,10 @@ class DefButton extends StatelessWidget {
         textColor = Theme.of(context).primaryColor;
         backgroundColor = Theme.of(context).primaryColor.withOpacity(.1);
         break;
+              case 3:
+        textColor = Theme.of(context).primaryColor;
+        backgroundColor = Colors.white;
+        break;
     }
     return Container(
       width: double.infinity,
