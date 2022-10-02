@@ -24,11 +24,15 @@ class MyApp extends StatelessWidget {
     ]);
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<SettingsProvider>(
-          create: (context) => SettingsProvider(),
-        ),
         ChangeNotifierProvider<AuthProvider>(
           create: (context) => AuthProvider(),
+        ),
+        // ChangeNotifierProxyProvider<AuthProvider, SettingsProvider>(
+        //   update: (context, value, previous) => SettingsProvider(value),
+        //   create: (context) => SettingsProvider(null),
+        // ),
+        ChangeNotifierProvider<SettingsProvider>(
+          create: (context) => SettingsProvider(),
         ),
       ],
       child: MaterialApp(

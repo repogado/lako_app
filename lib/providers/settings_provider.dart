@@ -1,12 +1,12 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:lako_app/models/settings.dart';
+import 'package:lako_app/providers/auth_provider.dart';
 import 'package:lako_app/utils/calc_radius.dart';
 import 'package:location/location.dart';
 
 class SettingsProvider with ChangeNotifier {
+
   late Settings _settings;
 
   // Completer<GoogleMapController> _controller = Completer();
@@ -18,11 +18,14 @@ class SettingsProvider with ChangeNotifier {
 
   late LatLng _latLng;
 
+  bool _mapLoading = true;
+
   Settings get settings => _settings;
   GoogleMapController get googleMapControler => _googleMapController;
   Location get location => _location;
   LocationData get locationData => _locationData;
   LatLng get latLng => _latLng;
+  bool get mapLoading => _mapLoading;
 
   SettingsProvider() {
     _settings = Settings(
@@ -81,6 +84,10 @@ class SettingsProvider with ChangeNotifier {
 
   void onLocationChange(LatLng latLng) async {
     _latLng = latLng;
+    // _authProvider!.setUserLocation(latLng);
+    if (_mapLoading == true) {
+      _mapLoading = false;
+    }
     notifyListeners();
   }
 

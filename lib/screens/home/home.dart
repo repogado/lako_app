@@ -23,6 +23,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   Marker? marker;
+  Marker? vendorMarker;
   Circle? circle;
   bool _loading = true;
   List<Marker> _markers = [];
@@ -125,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: _loading
+      body: _settingsProvider.mapLoading && _loading
           ? const Center(
               child: CircularProgressIndicator(),
             )
@@ -134,8 +135,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 GoogleMap(
                   mapType: _settingsProvider.settings.mapType,
                   markers: Set.of({
-                    ..._markers,
                     if (marker != null) marker!,
+                    if (vendorMarker != null) vendorMarker!,
                   }),
                   circles: Set.of({
                     Circle(
@@ -161,35 +162,35 @@ class _HomeScreenState extends State<HomeScreen> {
                     _listenLocation();
                   },
                 ),
-                // Align(
-                //   alignment: Alignment.bottomCenter,
-                //   child: Padding(
-                //     padding: const EdgeInsets.all(20),
-                //     child: DefButton(
-                //         onPress: () {
-                //           showFindingDialog(context,
-                //               "Finding ${_settingsProvider.settings.vendor}",
-                //               () {
-                //             Navigator.pop(context);
-                //           });
-                //         },
-                //         title: "FIND ${_settingsProvider.settings.vendor}"),
-                //   ),
-                // ),
                 Align(
                   alignment: Alignment.bottomCenter,
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                      borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(20),
-                        topLeft: Radius.circular(20),
-                      ),
-                    ),
-                    child: TransactionContainer(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: DefButton(
+                        onPress: () {
+                          showFindingDialog(context,
+                              "Finding ${_settingsProvider.settings.vendor}",
+                              () {
+                            Navigator.pop(context);
+                          });
+                        },
+                        title: "FIND ${_settingsProvider.settings.vendor}"),
                   ),
-                )
+                ),
+                // Align(
+                //   alignment: Alignment.bottomCenter,
+                //   child: Container(
+                //     width: double.infinity,
+                //     decoration: BoxDecoration(
+                //       color: Theme.of(context).primaryColor,
+                //       borderRadius: BorderRadius.only(
+                //         topRight: Radius.circular(20),
+                //         topLeft: Radius.circular(20),
+                //       ),
+                //     ),
+                //     child: TransactionContainer(),
+                //   ),
+                // )
               ],
             ),
       drawer: MyDrawer().drawer(
@@ -205,6 +206,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void _listenLocation() {
     _settingsProvider.location.onLocationChanged
         .listen((LocationData currentLocation) {
+      print(currentLocation.latitude!.toString() +
+          " " +
+          currentLocation.longitude!.toString());
       _setMarkers(
           LatLng(currentLocation.latitude!, currentLocation.longitude!));
       _settingsProvider.onLocationChange(

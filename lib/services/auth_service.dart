@@ -26,6 +26,12 @@ class AuthService {
       bool success = false;
       String msg = '';
 
+      DatabaseReference ref = FirebaseDatabase.instance
+          .ref("lako/users/${response.data!['data']['id']}");
+      await ref.set(response.data!).catchError((error) {
+        print(error);
+      });
+
       return APIResponse(
         response.data!['message'],
         response.data!['success'],
@@ -105,6 +111,12 @@ class AuthService {
       Map<String, dynamic> res = response.data!['data'];
       res['access'] = response.data!['token']['access'];
       res['refresh'] = response.data!['token']['refresh'];
+
+      DatabaseReference ref = FirebaseDatabase.instance
+          .ref("lako/users/${response.data!['data']['id']}");
+      await ref.set(res).catchError((error) {
+        print(error);
+      });
 
       SecureStorageService().writeData("auth", jsonEncode(res));
       SecureStorageService().writeData("token", res['access']);
