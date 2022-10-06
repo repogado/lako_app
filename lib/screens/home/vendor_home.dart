@@ -128,7 +128,9 @@ class _VendorHomeScreenState extends State<VendorHomeScreen> {
                           double.parse(_authProvider.connectedUser.longitude!),
                         ),
                         infoWindow: InfoWindow(
-                          title: "My Location",
+                          title: _authProvider.user.type == 'customer'
+                              ? 'Customer Location'
+                              : 'Vendor Location',
                         ),
                       ),
                   }),
@@ -155,7 +157,9 @@ class _VendorHomeScreenState extends State<VendorHomeScreen> {
                     child: DefButton(
                       onPress: () {
                         _authProvider.setVendorOnlineOffline(
-                            context, _settingsProvider.latLng);
+                          context,
+                          _settingsProvider.latLng,
+                        );
                       },
                       title: _authProvider.isVendorOnline
                           ? "GO OFFLINE"
@@ -167,6 +171,7 @@ class _VendorHomeScreenState extends State<VendorHomeScreen> {
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: TransactionContainer(
+                      userType: _authProvider.user.type!,
                       customer: _authProvider.user.type == 'customer'
                           ? _authProvider.user
                           : _authProvider.connectedUser,

@@ -26,15 +26,19 @@ class AuthProvider with ChangeNotifier {
   bool _isVendorOnline = false;
   bool loading = false;
 
+  late String _status;
+
   User get user => _user;
   User get connectedUser => _connectedUser;
   bool get isVendorOnline => _isVendorOnline;
+  String get status => _status;
 
   AuthProvider() {
     print(globals.token + " provd");
     _authService = AuthService();
     _notificationService = NotificationService();
     _connectedUser = User(id: null);
+    _status = 'waiting';
   }
 
   String setUser(String data) {
@@ -46,12 +50,34 @@ class AuthProvider with ChangeNotifier {
     return localData.access!;
   }
 
+  void setStatus(String status) {
+    _status = status;
+    notifyListeners();
+  }
+
   Future<void> setConnectedUser(User connectedUser) async {
     try {
       _connectedUser = connectedUser;
-
+      _status = 'confirmed';
       notifyListeners();
     } catch (e) {}
+  }
+
+  void setStatusToConfirmed(DatabaseEvent event) async {
+    final ref1 = FirebaseDatabase.instance.ref();
+    Map<String, dynamic>? value = jsonDecode(jsonEncode(event.snapshot.value));
+    value!['status'] = 'confirmed';
+    final snapshot3 =
+        await ref1.child('lako/connectedUsers/${_user.id}').set(value);
+  }
+
+  void setStatusToCompleted() async {
+    final ref1 = FirebaseDatabase.instance.ref();
+    final snapshot3 = await ref1
+        .child('lako/connectedUsers/${_user.id}/status')
+        .set('completed');
+    _status = 'completed';
+    notifyListeners();
   }
 
   void setUserMobile(String mobile) {
@@ -120,8 +146,9 @@ class AuthProvider with ChangeNotifier {
       DatabaseReference ref2 =
           FirebaseDatabase.instance.ref("lako/onlineVendors/${_user.id}");
       Map data = {
-        "customer_id": "",
-        "status": "waiting",
+        "customer_id": connectedUser.id != null ? connectedUser.id! : "",
+        "vendorType": _user.vendor,
+        "status": status,
         "latitude": latLng.latitude,
         "longitude": latLng.longitude,
       };
@@ -136,8 +163,9 @@ class AuthProvider with ChangeNotifier {
           FirebaseDatabase.instance.ref("lako/onlineVendors/${user.id}");
       if (!_isVendorOnline) {
         Map data = {
-          "customer_id": null,
-          "status": "waiting",
+          "customer_id": "",
+          "vendorType": _user.vendor,
+          "status": status,
           "latitude": latLng.latitude,
           "longitude": latLng.longitude,
         };
@@ -155,7 +183,7 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<int?> findVendor(BuildContext context) async {
+  Future<int?> findVendor(BuildContext context, String vendorTpe) async {
     DatabaseReference ref =
         FirebaseDatabase.instance.ref("lako/onlineVendors/");
     final snapshot = await ref.get();
@@ -179,10 +207,17 @@ class AuthProvider with ChangeNotifier {
           id = int.parse(key);
         }
       });
+      if (values['$id']['vendorType'] != vendorTpe) {
+        showInfoDialog(context, "No Vendors Found",
+            "Oops! There are currently no vendors nearby. Please try again later.");
+        return null;
+      }
+
+      values['$id']['customer_id'] = _user.id;
+      ref.child('$id/').set(values['$id']);
       print(id.toString() + " " + lowestDistance.toString() + ' diss');
       return id;
     } else {
-      Navigator.pop(context);
       showInfoDialog(context, "No Vendors Found",
           "Oops! There are currently no vendors nearby. Please try again later.");
       return null;

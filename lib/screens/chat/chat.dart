@@ -12,9 +12,9 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Chat")),
+      appBar: AppBar(title: Text("Chat Screen")),
       body: const Center(
-        child: Text('My Page!'),
+        child: Text('Chat Here'),
       ),
       // drawer: MyDrawer().drawer(context, 'chat'),
     );

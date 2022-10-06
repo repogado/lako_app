@@ -18,6 +18,7 @@ import 'package:lako_app/utils/calc_radius.dart';
 import 'package:lako_app/widgets/buttons/def_button.dart';
 import 'package:lako_app/widgets/dialogs/finding_vendor.dart';
 import 'package:lako_app/widgets/dialogs/info_dialog.dart';
+import 'package:lako_app/widgets/dialogs/rating_dialog.dart';
 import 'package:lako_app/widgets/drawer/drawer.dart';
 import 'package:location/location.dart';
 import 'package:provider/provider.dart';
@@ -176,7 +177,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   mapType: _settingsProvider.settings.mapType,
                   markers: Set.of({
                     if (marker != null) marker!,
-                    if (vendorMarker != null) vendorMarker!,
+                    if (_authProvider.connectedUser.id != null)
+                      Marker(
+                        markerId: MarkerId('loc2'),
+                        position: LatLng(
+                          double.parse(_authProvider.connectedUser.latitude!),
+                          double.parse(_authProvider.connectedUser.longitude!),
+                        ),
+                        infoWindow: InfoWindow(
+                          title: _authProvider.user.type == 'customer'
+                              ? 'Customer Location'
+                              : 'Vendor Location',
+                        ),
+                        icon: BitmapDescriptor.defaultMarkerWithHue(
+                            BitmapDescriptor.hueGreen),
+                      ),
                   }),
                   circles: Set.of({
                     Circle(
@@ -208,17 +223,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.all(20),
                     child: DefButton(
                         onPress: () async {
-                          int? id = await _authProvider.findVendor(context);
-                          if (id == null) {
-                            _listenToVendor(id!);
+                          int? id = await _authProvider.findVendor(
+                              context, _settingsProvider.settings.vendor);
+                          if (id != null) {
+                            _listenToVendor(id);
                             showFindingDialog(context,
                                 "Finding ${_settingsProvider.settings.vendor}",
                                 () {
                               Navigator.pop(context);
                             });
-                          } else {
-                            showInfoDialog(context, "Error",
-                                "Something Went Wrong Finding Vendors");
                           }
                         },
                         title: "FIND ${_settingsProvider.settings.vendor}"),
@@ -228,6 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: TransactionContainer(
+                      userType: _authProvider.user.type!,
                       customer: _authProvider.user.type == 'customer'
                           ? _authProvider.user
                           : _authProvider.connectedUser,
@@ -280,6 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
           User user = User.fromJson(value!);
           if (_authProvider.connectedUser.id == null) {
             _authProvider.setConnectedUser(user);
+            Navigator.pop(context);
 
             polylineCoordinates = await _settingsProvider.drawPolyline(
               PointLatLng(
@@ -293,6 +308,13 @@ class _HomeScreenState extends State<HomeScreen> {
             );
             _addPolyLine();
           }
+        } else if (data['status'] == 'cancelled') {
+          ref.remove();
+        } else if (data['status'] == 'completed') {
+          _authProvider.setConnectedUser(User());
+          showRatingDialog(context, (rating) {
+            print(rating);
+          });
         }
       } else {
         ref.remove();

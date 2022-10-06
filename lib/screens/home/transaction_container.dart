@@ -1,13 +1,20 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:lako_app/models/user.dart';
+import 'package:lako_app/providers/auth_provider.dart';
 import 'package:lako_app/widgets/buttons/def_button.dart';
+import 'package:provider/provider.dart';
 
 class TransactionContainer extends StatefulWidget {
+  final String userType;
   final User customer;
   final User vendor;
 
   const TransactionContainer(
-      {Key? key, required this.customer, required this.vendor})
+      {Key? key,
+      required this.userType,
+      required this.customer,
+      required this.vendor})
       : super(key: key);
 
   @override
@@ -15,8 +22,11 @@ class TransactionContainer extends StatefulWidget {
 }
 
 class _TransactionContainerState extends State<TransactionContainer> {
+  late AuthProvider _authProvider;
+
   @override
   Widget build(BuildContext context) {
+    _authProvider = Provider.of<AuthProvider>(context, listen: false);
     return Container(
       decoration: BoxDecoration(
           color: Theme.of(context).primaryColor,
@@ -31,26 +41,31 @@ class _TransactionContainerState extends State<TransactionContainer> {
             Positioned(
               top: 0,
               right: 0,
-              child: Stack(
-                children: [
-                  Container(
-                    width: 30,
-                    height: 30,
-                    child: Icon(
-                      Icons.chat,
-                      color: Colors.white,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, '/chat');
+                },
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 30,
+                      height: 30,
+                      child: Icon(
+                        Icons.chat,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Icon(
-                      Icons.info,
-                      color: Colors.blue,
-                      size: 15,
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Icon(
+                        Icons.info,
+                        color: Colors.blue,
+                        size: 15,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             Column(
@@ -60,7 +75,7 @@ class _TransactionContainerState extends State<TransactionContainer> {
                 Align(
                   alignment: Alignment.center,
                   child: Text(
-                   widget.vendor.vendor!.toUpperCase(),
+                    widget.vendor.vendor!.toUpperCase(),
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,
@@ -90,6 +105,7 @@ class _TransactionContainerState extends State<TransactionContainer> {
                           : widget.vendor.imgUrl!),
                       radius: 20,
                     ),
+                    // cachedImage(widget.customer.imgUrl)
                   ],
                 ),
                 Divider(color: Colors.white),
@@ -106,19 +122,23 @@ class _TransactionContainerState extends State<TransactionContainer> {
                           : widget.vendor.imgUrl!),
                       radius: 20,
                     ),
+                    // cachedImage(widget.vendor.imgUrl)
                   ],
                 ),
                 SizedBox(height: 15),
                 Row(
                   children: [
-                    Expanded(
-                      child: DefButton(
-                        onPress: () {},
-                        title: "DELIVERED",
-                        mode: 3,
+                    if (widget.userType == 'vendor')
+                      Expanded(
+                        child: DefButton(
+                          onPress: () {
+                            _authProvider.setStatusToCompleted();
+                          },
+                          title: "COMPLETED",
+                          mode: 3,
+                        ),
                       ),
-                    ),
-                    SizedBox(width: 10),
+                    if (widget.userType == 'vendor') SizedBox(width: 10),
                     Expanded(
                       child: DefButton(
                         onPress: () {},
@@ -133,6 +153,24 @@ class _TransactionContainerState extends State<TransactionContainer> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget cachedImage(String? path) {
+    String url =
+        path ?? 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+    return CachedNetworkImage(
+      imageUrl: url,
+      imageBuilder: (context, imageProvider) => Container(
+        width: 30.0,
+        height: 30.0,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+        ),
+      ),
+      placeholder: (context, url) => CircularProgressIndicator(),
+      errorWidget: (context, url, error) => Icon(Icons.error),
     );
   }
 }
