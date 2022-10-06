@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:lako_app/providers/auth_provider.dart';
 import 'package:lako_app/providers/settings_provider.dart';
 import 'package:lako_app/widgets/dialogs/distance_selection_dialog.dart';
 import 'package:lako_app/widgets/dialogs/map_mode_dialog.dart';
@@ -18,8 +19,10 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late SettingsProvider _settingsProvider;
+  late AuthProvider _authProvider;
   @override
   Widget build(BuildContext context) {
+    _authProvider = Provider.of<AuthProvider>(context,listen: false);
     _settingsProvider = Provider.of<SettingsProvider>(context, listen: true);
     return Scaffold(
       appBar: AppBar(title: Text("Settings")),
@@ -34,7 +37,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           Divider(),
           _mapMode(),
+          if(_authProvider.user.type == "customer")
           Divider(),
+          if(_authProvider.user.type == "customer")
           _distanceUnits(),
           Divider(),
           ListTile(
@@ -47,7 +52,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: _settingsProvider.settings.notification,
             ),
           ),
+          if(_authProvider.user.type == "customer")
           Divider(),
+          if(_authProvider.user.type == "customer")
           _radius(),
         ],
       ),
@@ -98,4 +105,5 @@ class _SettingsScreenState extends State<SettingsScreen> {
       },
     );
   }
+
 }

@@ -148,9 +148,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             // 'https://www.googleapis.com/auth/contacts.readonly'
                           ]);
                           final res = await _googleSignIn.signIn();
+                          if (res!.id.isEmpty) {
+                            return;
+                          }
                           showLoaderDialog(context);
                           final aPIResponse =
-                              await _authProvider.loginViaGmail(res!);
+                              await _authProvider.loginViaGmail(res);
                           Navigator.pop(context);
                           if (aPIResponse.success) {
                             print('success');
@@ -164,19 +167,22 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Container(
                           padding: EdgeInsets.symmetric(
                               vertical: 10, horizontal: 20),
-                          child: Row(mainAxisSize: MainAxisSize.min, children: [
-                            Image.asset("assets/google.png", width: 30),
-                            SizedBox(width: 15),
-                            Text(
-                              "Sign in with Google",
-                              style: TextStyle(
-                                  fontSize: 16, color: Colors.grey[500]),
-                            )
-                          ]),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Image.asset("assets/google.png", width: 30),
+                              SizedBox(width: 15),
+                              Text(
+                                "Sign in with Google",
+                                style: TextStyle(
+                                    fontSize: 16, color: Colors.grey[500]),
+                              )
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  )
+                  ),
                   // ElevatedButton.icon(
                   //   icon: const Icon(
                   //     Icons.gmail,

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:lako_app/services/secure_storage_service.dart';
+import 'package:lako_app/widgets/dialogs/loading_dialog.dart';
 import 'package:lako_app/widgets/dialogs/yes_no_dialog.dart';
 import 'package:restart_app/restart_app.dart';
 
@@ -59,6 +61,8 @@ class MyDrawer {
               showYesNoDialog(
                   context, "Logout", "Are you sure you want to Logout?",
                   () async {
+                GoogleSignIn _googleSignIn = GoogleSignIn();
+                await _googleSignIn.signOut();
                 await SecureStorageService().deleteData("auth");
                 await SecureStorageService().deleteData("token");
                 Restart.restartApp();

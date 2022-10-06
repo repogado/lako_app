@@ -26,11 +26,11 @@ class AuthService {
       bool success = false;
       String msg = '';
 
-      DatabaseReference ref = FirebaseDatabase.instance
-          .ref("lako/users/${response.data!['data']['id']}");
-      await ref.set(response.data!).catchError((error) {
-        print(error);
-      });
+      // DatabaseReference ref = FirebaseDatabase.instance
+      //     .ref("lako/users/${response.data!['data']['id']}");
+      // await ref.set(response.data!).catchError((error) {
+      //   print(error);
+      // });
 
       return APIResponse(
         response.data!['message'],

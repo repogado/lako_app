@@ -1,15 +1,23 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:lako_app/models/notification.dart';
 import 'package:lako_app/models/settings.dart';
+import 'package:lako_app/models/user.dart';
 import 'package:lako_app/providers/auth_provider.dart';
+import 'package:lako_app/providers/notification_provider.dart';
 import 'package:lako_app/providers/settings_provider.dart';
 import 'package:lako_app/screens/home/transaction_container.dart';
 import 'package:lako_app/utils/calc_radius.dart';
 import 'package:lako_app/widgets/buttons/def_button.dart';
 import 'package:lako_app/widgets/dialogs/finding_vendor.dart';
+import 'package:lako_app/widgets/dialogs/info_dialog.dart';
 import 'package:lako_app/widgets/drawer/drawer.dart';
 import 'package:location/location.dart';
 import 'package:provider/provider.dart';
@@ -28,8 +36,13 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loading = true;
   List<Marker> _markers = [];
 
+  PolylinePoints polylinePoints = PolylinePoints();
+  List<LatLng> polylineCoordinates = [];
+  Map<PolylineId, Polyline> polylines = {};
+
   late SettingsProvider _settingsProvider;
   late AuthProvider _authProvider;
+  late NotificationProvider _notificationProvider;
 
   @override
   void initState() {
@@ -37,6 +50,9 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
 
     WidgetsBinding.instance!.addPostFrameCallback((_) async {
+      await FirebaseMessaging.instance.subscribeToTopic('nearbyVendor');
+      _listenForeground();
+      _listenBackground();
       bool _serviceEnabled;
       PermissionStatus _permissionGranted;
       SettingsProvider _tempSettingsProvider =
@@ -63,6 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       LocationData locaData = await _tempSettingsProvider.initLocationData();
       _setMarkers(LatLng(locaData.latitude!, locaData.longitude!));
+      // _setMarkers(_tempSettingsProvider.latLng);
       setState(() {
         _loading = false;
       });
@@ -104,10 +121,33 @@ class _HomeScreenState extends State<HomeScreen> {
     return zoomLevel;
   }
 
+  void _listenForeground() {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      RemoteNotification? notification = message.notification;
+      _notificationProvider.saveNotification(notification!.body!);
+      if (message.notification != null) {
+        _settingsProvider.showNotification(
+          notification.hashCode,
+          notification.title,
+          notification.body,
+        );
+      }
+    });
+  }
+
+  void _listenBackground() {
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      // Restart.restartApp();
+      print('Got a message whilst in the Background!');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     _settingsProvider = Provider.of<SettingsProvider>(context, listen: true);
     _authProvider = Provider.of<AuthProvider>(context, listen: true);
+    _notificationProvider =
+        Provider.of<NotificationProvider>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
         title: Text("My Location"),
@@ -151,8 +191,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   }),
                   initialCameraPosition: CameraPosition(
                     target: LatLng(
-                      _settingsProvider.locationData.latitude!,
-                      _settingsProvider.locationData.longitude!,
+                      _settingsProvider.latLng.latitude,
+                      _settingsProvider.latLng.longitude,
                     ),
                     zoom: getZoomLevel(35),
                   ),
@@ -167,30 +207,35 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(20),
                     child: DefButton(
-                        onPress: () {
-                          showFindingDialog(context,
-                              "Finding ${_settingsProvider.settings.vendor}",
-                              () {
-                            Navigator.pop(context);
-                          });
+                        onPress: () async {
+                          int? id = await _authProvider.findVendor(context);
+                          if (id == null) {
+                            _listenToVendor(id!);
+                            showFindingDialog(context,
+                                "Finding ${_settingsProvider.settings.vendor}",
+                                () {
+                              Navigator.pop(context);
+                            });
+                          } else {
+                            showInfoDialog(context, "Error",
+                                "Something Went Wrong Finding Vendors");
+                          }
                         },
                         title: "FIND ${_settingsProvider.settings.vendor}"),
                   ),
                 ),
-                // Align(
-                //   alignment: Alignment.bottomCenter,
-                //   child: Container(
-                //     width: double.infinity,
-                //     decoration: BoxDecoration(
-                //       color: Theme.of(context).primaryColor,
-                //       borderRadius: BorderRadius.only(
-                //         topRight: Radius.circular(20),
-                //         topLeft: Radius.circular(20),
-                //       ),
-                //     ),
-                //     child: TransactionContainer(),
-                //   ),
-                // )
+                if (_authProvider.connectedUser.id != null)
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: TransactionContainer(
+                      customer: _authProvider.user.type == 'customer'
+                          ? _authProvider.user
+                          : _authProvider.connectedUser,
+                      vendor: _authProvider.user.type == 'vendor'
+                          ? _authProvider.user
+                          : _authProvider.connectedUser,
+                    ),
+                  )
               ],
             ),
       drawer: MyDrawer().drawer(
@@ -211,11 +256,61 @@ class _HomeScreenState extends State<HomeScreen> {
           currentLocation.longitude!.toString());
       _setMarkers(
           LatLng(currentLocation.latitude!, currentLocation.longitude!));
+      _authProvider.setUserLocation(
+          LatLng(currentLocation.latitude!, currentLocation.longitude!));
       _settingsProvider.onLocationChange(
           LatLng(currentLocation.latitude!, currentLocation.longitude!));
       // setState(() {});
       // _latLng = LatLng(currentLocation.latitude!, currentLocation.longitude!);
       // Use current location
     });
+  }
+
+  void _listenToVendor(int id) {
+    DatabaseReference ref =
+        FirebaseDatabase.instance.ref("lako/onlineVendors/$id");
+    ref.onValue.listen((DatabaseEvent event) async {
+      if (event.snapshot.exists) {
+        final data = event.snapshot.value as Map;
+        if (data['status'] == 'confirmed') {
+          final ref1 = FirebaseDatabase.instance.ref();
+          final snapshot2 = await ref1.child('lako/users/$id').get();
+          Map<String, dynamic>? value =
+              jsonDecode(jsonEncode(snapshot2.value)) as Map<String, dynamic>?;
+          User user = User.fromJson(value!);
+          if (_authProvider.connectedUser.id == null) {
+            _authProvider.setConnectedUser(user);
+
+            polylineCoordinates = await _settingsProvider.drawPolyline(
+              PointLatLng(
+                double.parse(_authProvider.user.latitude!),
+                double.parse(_authProvider.user.longitude!),
+              ),
+              PointLatLng(
+                double.parse(user.latitude!),
+                double.parse(user.longitude!),
+              ),
+            );
+            _addPolyLine();
+          }
+        }
+      } else {
+        ref.remove();
+      }
+    });
+  }
+
+  _addPolyLine() {
+    PolylineId id = PolylineId("poly");
+    Polyline polyline = Polyline(
+      polylineId: id,
+      color: Colors.blueAccent,
+      points: polylineCoordinates,
+      width: 3,
+    );
+    polylines[id] = polyline;
+    _settingsProvider
+        .animateCameraBetweenPoints(Set<Polyline>.of(polylines.values));
+    setState(() {});
   }
 }
