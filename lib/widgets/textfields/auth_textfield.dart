@@ -8,6 +8,7 @@ class AuthTextField extends StatefulWidget {
   final bool isPassword;
   final bool isNumber;
   final bool disabled;
+  final int maxLines;
 
   const AuthTextField({
     Key? key,
@@ -17,6 +18,7 @@ class AuthTextField extends StatefulWidget {
     this.isPassword = false,
     this.isNumber = false,
     this.disabled = false,
+    this.maxLines = 1,
   }) : super(key: key);
 
   @override
@@ -42,7 +44,12 @@ class _AuthTextFieldState extends State<AuthTextField> {
       enabled: !widget.disabled,
       controller: widget.textEditingController,
       obscureText: !_passwordVisible,
-      keyboardType: widget.isNumber ? TextInputType.number : null,
+      keyboardType: widget.maxLines > 1
+          ? TextInputType.multiline
+          : widget.isNumber
+              ? TextInputType.number
+              : null,
+      maxLines: widget.maxLines,
       decoration: InputDecoration(
         labelText: widget.title,
         filled: true,

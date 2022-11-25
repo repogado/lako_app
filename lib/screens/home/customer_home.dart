@@ -1,40 +1,43 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:lako_app/models/notification.dart';
+import 'package:lako_app/models/settings.dart';
 import 'package:lako_app/models/user.dart';
 import 'package:lako_app/providers/auth_provider.dart';
+import 'package:lako_app/providers/notification_provider.dart';
 import 'package:lako_app/providers/settings_provider.dart';
 import 'package:lako_app/screens/home/transaction_container.dart';
 import 'package:lako_app/utils/calc_radius.dart';
 import 'package:lako_app/widgets/buttons/def_button.dart';
-import 'package:lako_app/widgets/dialogs/booking_dialog.dart';
+import 'package:lako_app/widgets/dialogs/finding_vendor.dart';
+import 'package:lako_app/widgets/dialogs/info_dialog.dart';
+import 'package:lako_app/widgets/dialogs/rating_dialog.dart';
 import 'package:lako_app/widgets/drawer/drawer.dart';
 import 'package:location/location.dart';
 import 'package:provider/provider.dart';
 
-import '../../providers/notification_provider.dart';
-import '../../widgets/dialogs/info_dialog.dart';
-
-class VendorHomeScreen extends StatefulWidget {
-  const VendorHomeScreen({Key? key}) : super(key: key);
-
-  static const routeName = '/vendor_store';
+class CustomerHomeScreen extends StatefulWidget {
+  const CustomerHomeScreen({Key? key}) : super(key: key);
 
   @override
-  State<VendorHomeScreen> createState() => _VendorHomeScreenState();
+  State<CustomerHomeScreen> createState() => _CustomerHomeScreenState();
 }
 
-class _VendorHomeScreenState extends State<VendorHomeScreen> {
+class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   Marker? marker;
-  Marker? customerMarker;
+  Marker? vendorMarker;
+  Circle? circle;
   bool _loading = true;
+  List<Marker> _markers = [];
 
   PolylinePoints polylinePoints = PolylinePoints();
-  Map<PolylineId, Polyline> _mapPolylines = {};
   List<LatLng> polylineCoordinates = [];
   Map<PolylineId, Polyline> polylines = {};
 
@@ -46,11 +49,11 @@ class _VendorHomeScreenState extends State<VendorHomeScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
+
     WidgetsBinding.instance!.addPostFrameCallback((_) async {
-      AuthProvider auth = Provider.of<AuthProvider>(context, listen: false);
-      await FirebaseMessaging.instance
-          .subscribeToTopic(auth.user.id.toString());
+      await FirebaseMessaging.instance.subscribeToTopic('nearbyVendor');
       _listenForeground();
+      _listenBackground();
       bool _serviceEnabled;
       PermissionStatus _permissionGranted;
       SettingsProvider _tempSettingsProvider =
@@ -60,7 +63,7 @@ class _VendorHomeScreenState extends State<VendorHomeScreen> {
       if (!_serviceEnabled) {
         _serviceEnabled = await _tempSettingsProvider.location.serviceEnabled();
         if (!_serviceEnabled) {
-          return; 
+          return;
         }
       }
 
@@ -84,6 +87,41 @@ class _VendorHomeScreenState extends State<VendorHomeScreen> {
     });
   }
 
+  void _setMarkers(LatLng locdata) {
+    marker = Marker(
+      markerId: MarkerId('loc'),
+      position: LatLng(
+        locdata.latitude,
+        locdata.longitude,
+      ),
+      infoWindow: InfoWindow(
+        title: "My Location",
+      ),
+    );
+    circle = Circle(
+      circleId: CircleId('locc'),
+      center: LatLng(
+        locdata.latitude,
+        locdata.longitude,
+      ),
+      fillColor: Colors.blue.shade100.withOpacity(0.5),
+      strokeColor: Colors.blue.shade100.withOpacity(1),
+      strokeWidth: 2,
+      radius: getZoomLevel(_settingsProvider.settings.radius),
+    );
+  }
+
+  double getZoomLevel(double radius) {
+    double zoomLevel = 11;
+    if (radius > 0) {
+      double radiusElevated = radius + radius / 2;
+      double scale = radiusElevated / 500;
+      zoomLevel = 16 - log(scale) / log(2);
+    }
+    zoomLevel = double.parse(zoomLevel.toStringAsFixed(2));
+    return zoomLevel;
+  }
+
   void _listenForeground() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       RemoteNotification? notification = message.notification;
@@ -98,41 +136,32 @@ class _VendorHomeScreenState extends State<VendorHomeScreen> {
     });
   }
 
-  void _setMarkers(LatLng locdata) {
-    marker = Marker(
-      markerId: MarkerId('loc'),
-      position: LatLng(
-        locdata.latitude,
-        locdata.longitude,
-      ),
-      infoWindow: InfoWindow(
-        title: "My Location",
-      ),
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-    );
+  void _listenBackground() {
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      // Restart.restartApp();
+      print('Got a message whilst in the Background!');
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    _authProvider = Provider.of<AuthProvider>(context, listen: true);
     _settingsProvider = Provider.of<SettingsProvider>(context, listen: true);
+    _authProvider = Provider.of<AuthProvider>(context, listen: true);
     _notificationProvider =
         Provider.of<NotificationProvider>(context, listen: false);
-
     return Scaffold(
-      drawer: MyDrawer().drawer(
-        context,
-        'home',
-        _authProvider.user.firstName! + " " + _authProvider.user.lastName!,
-        _authProvider.user.type!,
-        _authProvider.user.imgUrl,
-      ),
       appBar: AppBar(
-        title: Text('${_authProvider.user.vendor}'),
+        title: Text("My Location"),
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, "/settings");
+              Navigator.of(context).pushNamed('/vendor_selection');
+            },
+            icon: Icon(Icons.search),
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).pushNamed('/settings');
             },
             icon: Icon(Icons.settings),
           ),
@@ -160,22 +189,32 @@ class _VendorHomeScreenState extends State<VendorHomeScreen> {
                               ? 'Customer Location'
                               : 'Vendor Location',
                         ),
+                        icon: BitmapDescriptor.defaultMarkerWithHue(
+                            BitmapDescriptor.hueGreen),
                       ),
                   }),
-                  // polylines: Set<Polyline>.of(_mapPolylines.values),
-                  polylines: Set<Polyline>.of(polylines.values),
+                  circles: Set.of({
+                    Circle(
+                      circleId: CircleId('locc'),
+                      center: LatLng(_settingsProvider.latLng.latitude,
+                          _settingsProvider.latLng.longitude),
+                      fillColor: Colors.blue.shade100.withOpacity(0.5),
+                      strokeColor: Colors.blue.shade100.withOpacity(1),
+                      strokeWidth: 2,
+                      radius: calcRadius(_settingsProvider.settings.radius),
+                    )
+                  }),
                   initialCameraPosition: CameraPosition(
                     target: LatLng(
                       _settingsProvider.latLng.latitude,
                       _settingsProvider.latLng.longitude,
                     ),
-                    zoom: getZoomLevel(35.0),
+                    zoom: getZoomLevel(35),
                   ),
                   onMapCreated: (GoogleMapController controller) {
                     // _settingsProvider.controller.complete(controller);
                     _settingsProvider.setGoogleMapController(controller);
                     _listenLocation();
-                    _listenCustomerBookings();
                   },
                 ),
                 Align(
@@ -183,16 +222,19 @@ class _VendorHomeScreenState extends State<VendorHomeScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(20),
                     child: DefButton(
-                      onPress: () {
-                        _authProvider.setVendorOnlineOffline(
-                          context,
-                          _settingsProvider.latLng,
-                        );
-                      },
-                      title: _authProvider.isVendorOnline
-                          ? "GO OFFLINE"
-                          : "GO ONLINE",
-                    ),
+                        onPress: () async {
+                          int? id = await _authProvider.findVendor(
+                              context, _settingsProvider.settings.vendor);
+                          if (id != null) {
+                            _listenToVendor(id);
+                            showFindingDialog(context,
+                                "Finding ${_settingsProvider.settings.vendor}",
+                                () {
+                              Navigator.pop(context);
+                            });
+                          }
+                        },
+                        title: "FIND ${_settingsProvider.settings.vendor}"),
                   ),
                 ),
                 if (_authProvider.connectedUser.id != null)
@@ -210,6 +252,13 @@ class _VendorHomeScreenState extends State<VendorHomeScreen> {
                   )
               ],
             ),
+      drawer: MyDrawer().drawer(
+        context,
+        'home',
+        _authProvider.user.firstName! + " " + _authProvider.user.lastName!,
+        _authProvider.user.type!,
+        _authProvider.user.imgUrl,
+      ),
     );
   }
 
@@ -221,72 +270,66 @@ class _VendorHomeScreenState extends State<VendorHomeScreen> {
           currentLocation.longitude!.toString());
       _setMarkers(
           LatLng(currentLocation.latitude!, currentLocation.longitude!));
-      _settingsProvider.onLocationChange(
-          LatLng(currentLocation.latitude!, currentLocation.longitude!));
       _authProvider.setUserLocation(
           LatLng(currentLocation.latitude!, currentLocation.longitude!));
+      _settingsProvider.onLocationChange(
+          LatLng(currentLocation.latitude!, currentLocation.longitude!));
+      // setState(() {});
+      // _latLng = LatLng(currentLocation.latitude!, currentLocation.longitude!);
+      // Use current location
     });
   }
 
-  void _listenCustomerBookings() {
-    DatabaseReference ref = FirebaseDatabase.instance
-        .ref("lako/onlineVendors/${_authProvider.user.id}/data");
+  void _listenToVendor(int id) {
+    DatabaseReference ref =
+        FirebaseDatabase.instance.ref("lako/onlineVendors/$id");
     ref.onValue.listen((DatabaseEvent event) async {
       if (event.snapshot.exists) {
         final data = event.snapshot.value as Map;
+        if (data['status'] == 'confirmed') {
+          final ref1 = FirebaseDatabase.instance.ref();
+          final snapshot2 = await ref1.child('lako/users/$id').get();
+          Map<String, dynamic>? value =
+              jsonDecode(jsonEncode(snapshot2.value)) as Map<String, dynamic>?;
+          User user = User.fromJson(value!);
 
-        final ref1 = FirebaseDatabase.instance.ref();
-
-        final snapshot2 =
-            await ref1.child('lako/users/${data['customer_id']}').get();
-        Map<String, dynamic>? value =
-            jsonDecode(jsonEncode(snapshot2.value)) as Map<String, dynamic>?;
-        User user = User.fromJson(value!);
-        if (_authProvider.isVendorOnline) {
-          if (data['customer_id'] != null && data['customer_id'] != "") {
-            if (data['status'] == 'waiting') {
-              print(data['customer_id']);
-
-              print(snapshot2.value);
-              polylineCoordinates = await _settingsProvider.drawPolyline(
-                PointLatLng(
-                  double.parse(_authProvider.user.latitude!),
-                  double.parse(_authProvider.user.longitude!),
-                ),
-                PointLatLng(
-                  double.parse(user.latitude!),
-                  double.parse(user.longitude!),
-                ),
-              );
-              if (_authProvider.connectedUser.id == null) {
-                showBookingDIalog(context, () async {
-                  _authProvider.setConnectedUser(user);
-                  _addPolyLine(false);
-
-                  Navigator.pop(context);
-                }, () async {
-                  await _authProvider.cancelBooking();
-                  _authProvider.setVendorOnlineOffline(
-                      context, _settingsProvider.latLng);
-                });
-              }
-            } else if (data['status'] == 'confirmed') {
-              _authProvider.updateConnectedUserLocation(
-                  user.latitude!, user.longitude!);
-            } else if (data['status'] == 'cancelled') {
-              Navigator.of(context).popUntil((route) => route.isFirst);
-              showInfoDialog(context, "Booking Cancelled",
-                  "Booking has been cancelled by the vendor");
-              _authProvider.setConnectedUser(User());
-              ref.remove();
-            }
+          _authProvider.updateConnectedUserLocation(
+            user.latitude!,
+            user.longitude!,
+          );
+          polylineCoordinates = await _settingsProvider.drawPolyline(
+            PointLatLng(
+              double.parse(_authProvider.user.latitude!),
+              double.parse(_authProvider.user.longitude!),
+            ),
+            PointLatLng(
+              double.parse(user.latitude!),
+              double.parse(user.longitude!),
+            ),
+          );
+          if (_authProvider.connectedUser.id == null) {
+            _authProvider.setConnectedUser(user);
+            Navigator.pop(context);
+            _addPolyLine();
+          }
+        } else if (data['status'] == 'cancelled') {
+          ref.remove();
+        } else if (data['status'] == 'completed') {
+          if (_authProvider.connectedUser.id != null) {
+            _authProvider.setConnectedUser(User());
+            ref.remove();
+            // showRatingDialog(context, (rating) {
+            //   print(rating);
+            // });
           }
         }
+      } else {
+        ref.remove();
       }
     });
   }
 
-  _addPolyLine(bool isUpdate) {
+  _addPolyLine() {
     PolylineId id = PolylineId("poly");
     Polyline polyline = Polyline(
       polylineId: id,
@@ -299,6 +342,4 @@ class _VendorHomeScreenState extends State<VendorHomeScreen> {
         .animateCameraBetweenPoints(Set<Polyline>.of(polylines.values));
     setState(() {});
   }
-
-  void _listenCustomerChanges() {}
 }

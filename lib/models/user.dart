@@ -18,27 +18,32 @@ class User {
   String? refresh;
   String? vendor;
   String? imgUrl;
+  String? storeName;
+  String? preferenceList;
+  String? rating;
 
-  User({
-    this.id,
-    this.vendor,
-    this.email,
-    this.username,
-    this.password,
-    this.firstName,
-    this.lastName,
-    this.mobileNumber,
-    this.type,
-    this.latitude,
-    this.longitude,
-    this.isOnline,
-    this.locationUpdatedAt,
-    this.isStaff,
-    this.isActive,
-    this.access,
-    this.refresh,
-    this.imgUrl,
-  });
+  User(
+      {this.id,
+      this.vendor,
+      this.email,
+      this.username,
+      this.password,
+      this.firstName,
+      this.lastName,
+      this.mobileNumber,
+      this.type,
+      this.latitude,
+      this.longitude,
+      this.isOnline,
+      this.locationUpdatedAt,
+      this.isStaff,
+      this.isActive,
+      this.access,
+      this.refresh,
+      this.imgUrl,
+      this.storeName,
+      this.preferenceList,
+      this.rating});
 
   User.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -59,6 +64,9 @@ class User {
     access = json['access'];
     refresh = json['refresh'];
     imgUrl = json['imgUrl'] ?? "";
+    storeName = json['store_name'] ?? "";
+    preferenceList = json['preference_list'] ?? "";
+    rating = json['rating'];
   }
 
   Map<String, dynamic> toJson() {
@@ -81,6 +89,9 @@ class User {
     data['refresh'] = this.refresh;
     data['access'] = this.access;
     data['imgUrl'] = this.imgUrl;
+    data['store_name'] = this.storeName;
+    data['preference_list'] = this.preferenceList;
+    data['rating'] = this.rating;
     return data;
   }
 
@@ -103,6 +114,9 @@ class User {
     String? refresh,
     String? vendor,
     String? imgUrl,
+    String? storeName,
+    String? preferenceList,
+    String? rating,
   }) {
     return User(
       id: id ?? this.id,
@@ -123,6 +137,9 @@ class User {
       refresh: refresh ?? this.refresh,
       vendor: vendor ?? this.vendor,
       imgUrl: imgUrl ?? this.imgUrl,
+      storeName: storeName ?? this.storeName,
+      preferenceList: preferenceList ?? this.preferenceList,
+      rating: rating ?? this.rating,
     );
   }
 }

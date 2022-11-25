@@ -34,7 +34,7 @@ class SettingsProvider with ChangeNotifier {
       mapType: MapType.normal,
       distanceUnits: "miles",
       notification: true,
-      radius: 0.5,
+      radius: 20,
       vendor: "Fish Vendor",
     );
     _location = Location();
@@ -62,6 +62,12 @@ class SettingsProvider with ChangeNotifier {
 
     _googleMapController.animateCamera(
         CameraUpdate.newLatLngZoom(_latLng, getZoomLevel(radius)));
+    notifyListeners();
+  }
+
+  void goToCurrentLocation() {
+    _googleMapController.animateCamera(
+        CameraUpdate.newLatLngZoom(_latLng, getZoomLevel(_settings.radius)));
     notifyListeners();
   }
 
@@ -160,5 +166,10 @@ class SettingsProvider with ChangeNotifier {
         ),
       ),
     );
+  }
+
+  void onRadiusChanged(double value) {
+    _settings = _settings.copyWith(radius: value);
+    notifyListeners();
   }
 }

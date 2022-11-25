@@ -14,27 +14,6 @@ class RadiusSelectionDialog {
               contentPadding: EdgeInsets.symmetric(horizontal: 0),
               content: Column(mainAxisSize: MainAxisSize.min, children: [
                 ListTile(
-                  title: Text("0.3"),
-                  onTap: () {
-                    onTap(0.3);
-                    Navigator.pop(context);
-                  },
-                ),
-                ListTile(
-                  title: Text("0.5"),
-                  onTap: () {
-                    onTap(0.5);
-                    Navigator.pop(context);
-                  },
-                ),
-                ListTile(
-                  title: Text("1"),
-                  onTap: () {
-                    onTap(1.toDouble());
-                    Navigator.pop(context);
-                  },
-                ),
-                ListTile(
                   title: Text("2"),
                   onTap: () {
                     onTap(2.toDouble());
@@ -42,9 +21,30 @@ class RadiusSelectionDialog {
                   },
                 ),
                 ListTile(
-                  title: Text("3"),
+                  title: Text("5"),
                   onTap: () {
-                    onTap(3.toDouble());
+                    onTap(5.toDouble());
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  title: Text("10"),
+                  onTap: () {
+                    onTap(10.toDouble());
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  title: Text("15"),
+                  onTap: () {
+                    onTap(15.toDouble());
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  title: Text("20"),
+                  onTap: () {
+                    onTap(20.toDouble());
                     Navigator.pop(context);
                   },
                 ),

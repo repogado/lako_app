@@ -3,17 +3,19 @@ import 'dart:math';
 double calcRadius(double radius) {
   double rs = 0;
 
-  if (radius == 0.3) {
-    rs = 20;
-  } else if (radius == 0.5) {
-    rs = 35;
-  } else if (radius == 1) {
-    rs = 45;
-  } else if (radius == 2) {
-    rs = 55;
-  } else {
-    rs = 65;
-  }
+  rs = radius * 150;
+
+  // if (radius == 2) {
+  //   rs = 80;
+  // } else if (radius == 5) {
+  //   rs = 350;
+  // } else if (radius == 10) {
+  //   rs = 700;
+  // } else if (radius == 15) {
+  //   rs = 1050;
+  // } else {
+  //   rs = 2100;
+  // }
   return rs;
 }
 

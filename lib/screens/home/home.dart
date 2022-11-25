@@ -10,6 +10,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:lako_app/models/notification.dart';
 import 'package:lako_app/models/settings.dart';
 import 'package:lako_app/models/user.dart';
+import 'package:lako_app/models/vendorStoreArguments.dart';
 import 'package:lako_app/providers/auth_provider.dart';
 import 'package:lako_app/providers/notification_provider.dart';
 import 'package:lako_app/providers/settings_provider.dart';
@@ -35,7 +36,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Marker? vendorMarker;
   Circle? circle;
   bool _loading = true;
-  List<Marker> _markers = [];
+  // List<Marker> _markers = [];
+  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
 
   PolylinePoints polylinePoints = PolylinePoints();
   List<LatLng> polylineCoordinates = [];
@@ -51,9 +53,13 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
 
     WidgetsBinding.instance!.addPostFrameCallback((_) async {
+      AuthProvider auth = Provider.of<AuthProvider>(context, listen: false);
       await FirebaseMessaging.instance.subscribeToTopic('nearbyVendor');
+      await FirebaseMessaging.instance
+          .subscribeToTopic(auth.user.id.toString());
       _listenForeground();
       _listenBackground();
+      _listenToAllVendorsOnline();
       bool _serviceEnabled;
       PermissionStatus _permissionGranted;
       SettingsProvider _tempSettingsProvider =
@@ -153,12 +159,12 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text("My Location"),
         actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.of(context).pushNamed('/vendor_selection');
-            },
-            icon: Icon(Icons.search),
-          ),
+          // IconButton(
+          //   onPressed: () {
+          //     Navigator.of(context).pushNamed('/vendor_selection');
+          //   },
+          //   icon: Icon(Icons.search),
+          // ),
           IconButton(
             onPressed: () {
               Navigator.of(context).pushNamed('/settings');
@@ -176,6 +182,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 GoogleMap(
                   mapType: _settingsProvider.settings.mapType,
                   markers: Set.of({
+                    if (_authProvider.connectedUser.id == null)
+                      ...markers.values,
                     if (marker != null) marker!,
                     if (_authProvider.connectedUser.id != null)
                       Marker(
@@ -194,16 +202,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                   }),
                   circles: Set.of({
-                    Circle(
-                      circleId: CircleId('locc'),
-                      center: LatLng(_settingsProvider.latLng.latitude,
-                          _settingsProvider.latLng.longitude),
-                      fillColor: Colors.blue.shade100.withOpacity(0.5),
-                      strokeColor: Colors.blue.shade100.withOpacity(1),
-                      strokeWidth: 2,
-                      radius: calcRadius(_settingsProvider.settings.radius),
-                    )
+                    if (_authProvider.connectedUser.id == null)
+                      Circle(
+                        circleId: CircleId('locc'),
+                        center: LatLng(_settingsProvider.latLng.latitude,
+                            _settingsProvider.latLng.longitude),
+                        fillColor: Colors.blue.shade100.withOpacity(0.5),
+                        strokeColor: Colors.blue.shade100.withOpacity(1),
+                        strokeWidth: 2,
+                        radius: calcRadius(_settingsProvider.settings.radius),
+                      )
                   }),
+                  polylines: Set<Polyline>.of(polylines.values),
                   initialCameraPosition: CameraPosition(
                     target: LatLng(
                       _settingsProvider.latLng.latitude,
@@ -217,26 +227,26 @@ class _HomeScreenState extends State<HomeScreen> {
                     _listenLocation();
                   },
                 ),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: DefButton(
-                        onPress: () async {
-                          int? id = await _authProvider.findVendor(
-                              context, _settingsProvider.settings.vendor);
-                          if (id != null) {
-                            _listenToVendor(id);
-                            showFindingDialog(context,
-                                "Finding ${_settingsProvider.settings.vendor}",
-                                () {
-                              Navigator.pop(context);
-                            });
-                          }
-                        },
-                        title: "FIND ${_settingsProvider.settings.vendor}"),
-                  ),
-                ),
+                // Align(
+                //   alignment: Alignment.bottomCenter,
+                //   child: Padding(
+                //     padding: const EdgeInsets.all(20),
+                //     child: DefButton(
+                //         onPress: () async {
+                //           int? id = await _authProvider.findVendor(
+                //               context, _settingsProvider.settings.vendor);
+                //           if (id != null) {
+                //             _listenToVendor(id);
+                //             showFindingDialog(context,
+                //                 "Finding ${_settingsProvider.settings.vendor}",
+                //                 () {
+                //               Navigator.pop(context);
+                //             });
+                //           }
+                //         },
+                //         title: "FIND ${_settingsProvider.settings.vendor}"),
+                //   ),
+                // ),
                 if (_authProvider.connectedUser.id != null)
                   Align(
                     alignment: Alignment.bottomCenter,
@@ -249,7 +259,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           ? _authProvider.user
                           : _authProvider.connectedUser,
                     ),
-                  )
+                  ),
+
+                Align(
+                  alignment: Alignment.topRight,
+                  child: IconButton(
+                    color: Colors.red,
+                    icon: const Icon(Icons.location_searching_outlined),
+                    onPressed: () {
+                      _settingsProvider.goToCurrentLocation();
+                    },
+                  ),
+                ),
               ],
             ),
       drawer: MyDrawer().drawer(
@@ -262,12 +283,68 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _listenToAllVendorsOnline() {
+    DatabaseReference ref =
+        FirebaseDatabase.instance.ref("lako/onlineVendors/");
+    ref.onValue.listen((DatabaseEvent event) async {
+      if (_authProvider.connectedUser.id != null) {
+        setState(() {
+          markers = {};
+        });
+      }
+
+      if (event.snapshot.exists) {
+        final data = event.snapshot.value as Map;
+        data.forEach((key, values) {
+          LatLng latLng =
+              LatLng(values['data']['latitude'], values['data']['longitude']);
+          final String keyId = key.toString();
+          final MarkerId markerId = MarkerId(keyId);
+          final Marker marker = Marker(
+              markerId: markerId,
+              position: latLng,
+              infoWindow: InfoWindow(
+                title: values['data']['vendorType'],
+              ),
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                  BitmapDescriptor.hueGreen),
+              onTap: () {
+                // Navigator.push(context, route)
+                Navigator.pushNamed(
+                  context,
+                  '/vendor_store',
+                  arguments: ScreenArguments(
+                    keyId,
+                    (id) {
+                      _listenToVendor(int.parse(id));
+                      showFindingDialog(
+                          context, "Wating for book to be accepted", () {
+                        Navigator.pop(context);
+                      });
+                    },
+                  ),
+                );
+              });
+          setState(() {
+            markers[markerId] = marker;
+          });
+        });
+
+        // final Marker marker = Marker(markerId: event.snapshot., position: latLng);
+      } else {
+        setState(() {
+          markers.clear();
+        });
+      }
+    });
+  }
+
   void _listenLocation() {
     _settingsProvider.location.onLocationChanged
         .listen((LocationData currentLocation) {
-      print(currentLocation.latitude!.toString() +
-          " " +
-          currentLocation.longitude!.toString());
+      // print(currentLocation.latitude!.toString() +
+      //     " " +
+      //     currentLocation.longitude!.toString());
       _setMarkers(
           LatLng(currentLocation.latitude!, currentLocation.longitude!));
       _authProvider.setUserLocation(
@@ -282,7 +359,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _listenToVendor(int id) {
     DatabaseReference ref =
-        FirebaseDatabase.instance.ref("lako/onlineVendors/$id");
+        FirebaseDatabase.instance.ref("lako/onlineVendors/$id/data");
     ref.onValue.listen((DatabaseEvent event) async {
       if (event.snapshot.exists) {
         final data = event.snapshot.value as Map;
@@ -292,29 +369,45 @@ class _HomeScreenState extends State<HomeScreen> {
           Map<String, dynamic>? value =
               jsonDecode(jsonEncode(snapshot2.value)) as Map<String, dynamic>?;
           User user = User.fromJson(value!);
+
+          _authProvider.updateConnectedUserLocation(
+            user.latitude!,
+            user.longitude!,
+          );
+          polylineCoordinates = await _settingsProvider.drawPolyline(
+            PointLatLng(
+              double.parse(_authProvider.user.latitude!),
+              double.parse(_authProvider.user.longitude!),
+            ),
+            PointLatLng(
+              double.parse(user.latitude!),
+              double.parse(user.longitude!),
+            ),
+          );
           if (_authProvider.connectedUser.id == null) {
             _authProvider.setConnectedUser(user);
-            Navigator.pop(context);
-
-            polylineCoordinates = await _settingsProvider.drawPolyline(
-              PointLatLng(
-                double.parse(_authProvider.user.latitude!),
-                double.parse(_authProvider.user.longitude!),
-              ),
-              PointLatLng(
-                double.parse(user.latitude!),
-                double.parse(user.longitude!),
-              ),
-            );
-            _addPolyLine();
+            Navigator.of(context).popUntil((route) => route.isFirst);
           }
+          _addPolyLine();
         } else if (data['status'] == 'cancelled') {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          showInfoDialog(context, "Booking Cancelled",
+              "Booking has been cancelled by the vendor");
+          _authProvider.setConnectedUser(User());
           ref.remove();
         } else if (data['status'] == 'completed') {
-          _authProvider.setConnectedUser(User());
-          showRatingDialog(context, (rating) {
-            print(rating);
-          });
+          if (_authProvider.connectedUser.id != null) {
+            showRatingDialog(context, _authProvider.connectedUser.id!,
+                (id, rating, text) {
+              print(rating);
+              DatabaseReference refRate =
+                  FirebaseDatabase.instance.ref("lako/users/$id/rating");
+              refRate.set(rating);
+              print(text);
+            });
+            _authProvider.setConnectedUser(User());
+            ref.remove();
+          }
         }
       } else {
         ref.remove();

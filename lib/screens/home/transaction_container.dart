@@ -5,6 +5,8 @@ import 'package:lako_app/providers/auth_provider.dart';
 import 'package:lako_app/widgets/buttons/def_button.dart';
 import 'package:provider/provider.dart';
 
+import '../../widgets/dialogs/yes_no_dialog.dart';
+
 class TransactionContainer extends StatefulWidget {
   final String userType;
   final User customer;
@@ -100,9 +102,10 @@ class _TransactionContainerState extends State<TransactionContainer> {
                       style: TextStyle(color: Colors.white),
                     ),
                     CircleAvatar(
-                      backgroundImage: NetworkImage(widget.vendor.imgUrl == null
+                      backgroundImage: NetworkImage(widget.customer.imgUrl ==
+                              null
                           ? "https://cdn-icons-png.flaticon.com/512/149/149071.png"
-                          : widget.vendor.imgUrl!),
+                          : widget.customer.imgUrl!),
                       radius: 20,
                     ),
                     // cachedImage(widget.customer.imgUrl)
@@ -139,13 +142,20 @@ class _TransactionContainerState extends State<TransactionContainer> {
                         ),
                       ),
                     if (widget.userType == 'vendor') SizedBox(width: 10),
-                    Expanded(
-                      child: DefButton(
-                        onPress: () {},
-                        title: "CANCEL",
-                        mode: 3,
+                    if (widget.userType == 'vendor')
+                      Expanded(
+                        child: DefButton(
+                          onPress: () {
+                            showYesNoDialog(context, "Cancel Book",
+                                "Are you sure you want to cancel booking?",
+                                () async {
+                              _authProvider.setStatusToCancelled();
+                            });
+                          },
+                          title: "CANCEL",
+                          mode: 3,
+                        ),
                       ),
-                    ),
                   ],
                 )
               ],

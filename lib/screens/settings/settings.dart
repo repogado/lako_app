@@ -22,7 +22,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late AuthProvider _authProvider;
   @override
   Widget build(BuildContext context) {
-    _authProvider = Provider.of<AuthProvider>(context,listen: false);
+    _authProvider = Provider.of<AuthProvider>(context, listen: false);
     _settingsProvider = Provider.of<SettingsProvider>(context, listen: true);
     return Scaffold(
       appBar: AppBar(title: Text("Settings")),
@@ -37,10 +37,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           Divider(),
           _mapMode(),
-          if(_authProvider.user.type == "customer")
-          Divider(),
-          if(_authProvider.user.type == "customer")
-          _distanceUnits(),
+          if (_authProvider.user.type == "customer") Divider(),
+          if (_authProvider.user.type == "customer") _distanceUnits(),
           Divider(),
           ListTile(
             title: Text("Notifications"),
@@ -52,10 +50,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: _settingsProvider.settings.notification,
             ),
           ),
-          if(_authProvider.user.type == "customer")
-          Divider(),
-          if(_authProvider.user.type == "customer")
-          _radius(),
+          if (_authProvider.user.type == "customer") Divider(),
+          if (_authProvider.user.type == "customer") _radius(),
         ],
       ),
       // drawer: MyDrawer().drawer(context, 'settings'),
@@ -93,17 +89,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _radius() {
-    return ListTile(
-      title: Text("Radius"),
-      leading: Icon(Icons.circle_outlined),
-      trailing: Text(_settingsProvider.settings.radius.toString()),
-      onTap: () {
-        RadiusSelectionDialog.showRadiusSelectionDialog(context,
-            (double radius) {
-          _settingsProvider.setRadius(radius);
-        });
-      },
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          Icon(Icons.circle_outlined),
+          SizedBox(width: 30),
+          Text("Radius"),
+          SizedBox(width: 50),
+          Expanded(
+            child: Slider(
+              value: _settingsProvider.settings.radius,
+              max: 20,
+              divisions: 5,
+              label: _settingsProvider.settings.radius.toString(),
+              onChanged: (double value) {
+                print(value);
+                _settingsProvider.onRadiusChanged(value);
+                // setState(() {
+                //   _currentSliderValue = value;
+                // });
+              },
+            ),
+          ),
+        ],
+      ),
     );
+    // return ListTile(
+    //   title: Text("Radius"),
+    //   leading: Icon(Icons.circle_outlined),
+    //   // trailing: Text(_settingsProvider.settings.radius.toString()),
+    //   trailing: Slider(
+    //     value: _settingsProvider.settings.radius,
+    //     max: 20,
+    //     divisions: 5,
+    //     label: _settingsProvider.settings.radius.toString(),
+    //     onChanged: (double value) {
+    //       // setState(() {
+    //       //   _currentSliderValue = value;
+    //       // });
+    //     },
+    //   ),
+    //   onTap: () {
+    //     RadiusSelectionDialog.showRadiusSelectionDialog(context,
+    //         (double radius) {
+    //       _settingsProvider.setRadius(radius);
+    //     });
+    //   },
+    // );
   }
-
 }

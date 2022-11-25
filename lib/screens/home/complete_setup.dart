@@ -35,10 +35,14 @@ class _CompleteSetupState extends State<CompleteSetup>
   late AuthProvider _authProvider;
 
   final _formKey = GlobalKey<FormState>();
+  final _formKey2 = GlobalKey<FormState>();
 
   bool _loading = true;
 
   TextEditingController mobileController = TextEditingController();
+
+  TextEditingController storeNameController = TextEditingController(text: "");
+  TextEditingController preferenceController = TextEditingController(text: "");
 
   int _length = 2;
 
@@ -97,207 +101,302 @@ class _CompleteSetupState extends State<CompleteSetup>
             ? Center(
                 child: CircularProgressIndicator(),
               )
-            : TabBarView(controller: _tabController, children: [
-                if (_length == 3)
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                        vertical: SizeConfig.safeBlockVertical * 6,
-                        horizontal: SizeConfig.blockSizeHorizontal * 8),
-                    child: Form(
-                      key: _formKey,
-                      child: SingleChildScrollView(
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "Complete Details",
-                                style: TextStyle(
-                                    fontSize: 25, fontWeight: FontWeight.bold),
-                              ),
-                              SizedBox(
-                                  height: SizeConfig.blockSizeVertical * 10),
-                              AuthTextField(
-                                textEditingController: TextEditingController(
-                                    text: _authProvider.user.firstName),
-                                title: "First Name",
-                                disabled: true,
-                                validator: (value) {
-                                  return null;
-                                },
-                              ),
-                              SizedBox(
-                                  height: SizeConfig.blockSizeVertical * 2),
-                              AuthTextField(
-                                textEditingController: TextEditingController(
-                                    text: _authProvider.user.lastName),
-                                title: "Last Name",
-                                disabled: true,
-                                validator: (value) {
-                                  return null;
-                                },
-                              ),
-                              SizedBox(
-                                  height: SizeConfig.blockSizeVertical * 2),
-                              AuthTextField(
-                                textEditingController: mobileController,
-                                title: "Contact Number",
-                                validator: (value) {
-                                  return Validations().mobileNumberValid(value);
-                                },
-                              ),
-                              SizedBox(
-                                  height: SizeConfig.blockSizeVertical * 4),
-                              DefButton(
-                                onPress: () async {
-                                  if (_formKey.currentState!.validate()) {
-                                    _authProvider
-                                        .setUserMobile(mobileController.text);
+            : TabBarView(
+                physics: NeverScrollableScrollPhysics(),
+                controller: _tabController,
+                children: [
+                    if (_length == 3)
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                            vertical: SizeConfig.safeBlockVertical * 6,
+                            horizontal: SizeConfig.blockSizeHorizontal * 8),
+                        child: Form(
+                          key: _formKey,
+                          child: SingleChildScrollView(
+                            child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "Complete Details",
+                                    style: TextStyle(
+                                        fontSize: 25,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  SizedBox(
+                                      height:
+                                          SizeConfig.blockSizeVertical * 10),
+                                  Image.asset(
+                                    "assets/info.png",
+                                    width: 200,
+                                  ),
+                                  SizedBox(
+                                      height: SizeConfig.blockSizeVertical * 3),
+                                  AuthTextField(
+                                    textEditingController:
+                                        TextEditingController(
+                                            text: _authProvider.user.firstName),
+                                    title: "First Name",
+                                    disabled: true,
+                                    validator: (value) {
+                                      return null;
+                                    },
+                                  ),
+                                  SizedBox(
+                                      height: SizeConfig.blockSizeVertical * 2),
+                                  AuthTextField(
+                                    textEditingController:
+                                        TextEditingController(
+                                            text: _authProvider.user.lastName),
+                                    title: "Last Name",
+                                    disabled: true,
+                                    validator: (value) {
+                                      return null;
+                                    },
+                                  ),
+                                  SizedBox(
+                                      height: SizeConfig.blockSizeVertical * 2),
+                                  AuthTextField(
+                                    textEditingController: mobileController,
+                                    title: "Contact Number",
+                                    validator: (value) {
+                                      return Validations()
+                                          .mobileNumberValid(value);
+                                    },
+                                  ),
+                                  SizedBox(
+                                      height: SizeConfig.blockSizeVertical * 4),
+                                  DefButton(
+                                    onPress: () async {
+                                      if (_formKey.currentState!.validate()) {
+                                        _authProvider.setUserMobile(
+                                            mobileController.text);
+                                        _tabController.animateTo(1);
+                                      }
+                                    },
+                                    title: 'NEXT',
+                                  ),
+                                ]),
+                          ),
+                        ),
+                      ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                          vertical: SizeConfig.safeBlockVertical * 6,
+                          horizontal: SizeConfig.blockSizeHorizontal * 8),
+                      child: Column(
+                        children: [
+                          Text(
+                            "Select User TYPE",
+                            style: TextStyle(
+                                fontSize: 25, fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: SizeConfig.blockSizeVertical * 5),
+                          Expanded(
+                            child: Material(
+                              // color: Theme.of(context).primaryColor,
+                              child: InkWell(
+                                onTap: () {
+                                  if (_length == 2) {
                                     _tabController.animateTo(1);
+                                  } else {
+                                    _tabController.animateTo(2);
                                   }
                                 },
-                                title: 'NEXT',
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      border: Border.all(
+                                          color:
+                                              Theme.of(context).primaryColor)),
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Image.asset(
+                                          "assets/cart.png",
+                                          width: 200,
+                                        ),
+                                        Text(
+                                          "Vendor",
+                                          style: TextStyle(
+                                              fontSize: 30,
+                                              fontWeight: FontWeight.bold,
+                                              color: Theme.of(context)
+                                                  .primaryColor),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ]),
+                            ),
+                          ),
+                          SizedBox(height: SizeConfig.blockSizeVertical * 5),
+                          Expanded(
+                            child: Material(
+                              // color: Theme.of(context).primaryColor,
+                              child: InkWell(
+                                onTap: () async {
+                                  showLoaderDialog(context);
+                                  User user = _authProvider.user;
+                                  user.type = 'customer';
+                                  final aPIResponse =
+                                      await _authProvider.updateUser(user);
+                                  Navigator.pop(context);
+                                  showNackbar(aPIResponse.msg);
+                                  if (aPIResponse.success) {
+                                    Navigator.of(context)
+                                        .pushNamedAndRemoveUntil('/home',
+                                            (Route<dynamic> routes) => false);
+                                  }
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      border: Border.all(
+                                          color:
+                                              Theme.of(context).primaryColor)),
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Image.asset(
+                                          "assets/email.png",
+                                          width: 200,
+                                        ),
+                                        Text(
+                                          "Customer",
+                                          style: TextStyle(
+                                              fontSize: 30,
+                                              fontWeight: FontWeight.bold,
+                                              color: Theme.of(context)
+                                                  .primaryColor),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                      vertical: SizeConfig.safeBlockVertical * 6,
-                      horizontal: SizeConfig.blockSizeHorizontal * 8),
-                  child: Column(
-                    children: [
-                      Text(
-                        "Select User TYPE",
-                        style: TextStyle(
-                            fontSize: 25, fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: SizeConfig.blockSizeVertical * 5),
-                      Expanded(
-                        child: Material(
-                          color: Theme.of(context).primaryColor,
-                          child: InkWell(
-                            onTap: () {
-                              if (_length == 2) {
-                                _tabController.animateTo(1);
-                              } else {
-                                _tabController.animateTo(2);
-                              }
-                            },
-                            child: Container(
-                              child: Center(
-                                child: Text(
-                                  "Vendor",
+                    Padding(
+                        padding: EdgeInsets.symmetric(
+                            vertical: SizeConfig.safeBlockVertical * 6,
+                            horizontal: SizeConfig.blockSizeHorizontal * 8),
+                        child: SingleChildScrollView(
+                          child: Form(
+                            key: _formKey2,
+                            child: Column(
+                              children: [
+                                Text(
+                                  "Select Vendor Type and Write about your store",
+                                  textAlign: TextAlign.center,
                                   style: TextStyle(
-                                      fontSize: 30,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white),
+                                      fontSize: 25,
+                                      fontWeight: FontWeight.bold),
                                 ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: SizeConfig.blockSizeVertical * 5),
-                      Expanded(
-                        child: Material(
-                          color: Theme.of(context).primaryColor,
-                          child: InkWell(
-                            onTap: () async {
-                              showLoaderDialog(context);
-                              User user = _authProvider.user;
-                              user.type = 'customer';
-                              final aPIResponse =
-                                  await _authProvider.updateUser(user);
-                              Navigator.pop(context);
-                              showNackbar(aPIResponse.msg);
-                              if (aPIResponse.success) {
-                                Navigator.of(context).pushNamedAndRemoveUntil(
-                                    '/home',
-                                    (Route<dynamic> routes) => false);
-                              }
-                            },
-                            child: Container(
-                              child: Center(
-                                child: Text(
-                                  "Customer",
-                                  style: TextStyle(
-                                      fontSize: 30,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white),
+                                SizedBox(
+                                    height: SizeConfig.blockSizeVertical * 5),
+                                Center(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text("Select Vendor Type"),
+                                      DropdownButton<String>(
+                                        hint: const Text("Select Vendor Type"),
+                                        isExpanded: true,
+                                        value: dropdownValue,
+                                        icon: const Icon(Icons.arrow_downward),
+                                        elevation: 16,
+                                        underline: Container(
+                                          height: 1,
+                                          color: Colors.black,
+                                        ),
+                                        onChanged: (String? value) {
+                                          // This is called when the user selects an item.
+                                          setState(() {
+                                            dropdownValue = value!;
+                                          });
+                                        },
+                                        items: list
+                                            .map<DropdownMenuItem<String>>(
+                                                (String value) {
+                                          return DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(value),
+                                          );
+                                        }).toList(),
+                                      ),
+                                      SizedBox(
+                                          height:
+                                              SizeConfig.blockSizeVertical * 5),
+                                      AuthTextField(
+                                        textEditingController:
+                                            storeNameController,
+                                        title: "Store Name",
+                                        validator: (value) {
+                                          return Validations()
+                                              .signUpNameValidator(value);
+                                        },
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
+                                SizedBox(
+                                    height: SizeConfig.blockSizeVertical * 5),
+                                AuthTextField(
+                                  textEditingController: preferenceController,
+                                  title: 'About the store',
+                                  maxLines: 7,
+                                  validator: (value) {
+                                    return null;
+                                  },
+                                ),
+                                SizedBox(
+                                    height: SizeConfig.blockSizeVertical * 15),
+                                DefButton(
+                                  onPress: () async {
+                                    if (_formKey2.currentState!.validate()) {
+                                      showLoaderDialog(context);
+                                      User user = _authProvider.user;
+                                      user.type = 'vendor';
+
+                                      if (_length == 3) {
+                                        user.storeName =
+                                            storeNameController.text;
+                                        user.mobileNumber =
+                                            mobileController.text;
+                                        user.preferenceList =
+                                            preferenceController.text;
+                                      }
+                                      user.vendor = dropdownValue;
+                                      print(storeNameController.text);
+                                      print(
+                                          user.toJson().toString() + " userr");
+                                      final aPIResponse =
+                                          await _authProvider.updateUser(user);
+                                      Navigator.pop(context);
+                                      showNackbar(aPIResponse.msg);
+                                      if (aPIResponse.success) {
+                                        Navigator.of(context)
+                                            .pushNamedAndRemoveUntil(
+                                                '/home_vendor',
+                                                (Route<dynamic> routes) =>
+                                                    false);
+                                      }
+                                    }
+                                  },
+                                  title: "Submit",
+                                )
+                              ],
                             ),
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                      vertical: SizeConfig.safeBlockVertical * 6,
-                      horizontal: SizeConfig.blockSizeHorizontal * 8),
-                  child: Column(
-                    children: [
-                      Text(
-                        "Select Vendor Type",
-                        style: TextStyle(
-                            fontSize: 25, fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: SizeConfig.blockSizeVertical * 5),
-                      Expanded(
-                        child: Center(
-                          child: DropdownButton<String>(
-                            value: dropdownValue,
-                            icon: const Icon(Icons.arrow_downward),
-                            elevation: 16,
-                            style: const TextStyle(color: Colors.deepPurple),
-                            underline: Container(
-                              height: 2,
-                              color: Colors.deepPurpleAccent,
-                            ),
-                            onChanged: (String? value) {
-                              // This is called when the user selects an item.
-                              setState(() {
-                                dropdownValue = value!;
-                              });
-                            },
-                            items: list
-                                .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ),
-                      DefButton(
-                        onPress: () async {
-                          showLoaderDialog(context);
-                          User user = _authProvider.user;
-                          user.type = 'vendor';
-                          if (_length == 3) {
-                            user.mobileNumber = mobileController.text;
-                          }
-                          user.vendor = dropdownValue;
-                          print(user.toJson().toString()+" userr");
-                          final aPIResponse =
-                              await _authProvider.updateUser(user);
-                          Navigator.pop(context);
-                          showNackbar(aPIResponse.msg);
-                          if (aPIResponse.success) {
-                            Navigator.of(context).pushNamedAndRemoveUntil(
-                                '/home_vendor', (Route<dynamic> routes) => false);
-                          }
-                        },
-                        title: "Submit",
-                      )
-                    ],
-                  ),
-                )
-              ]),
+                        ))
+                  ]),
       ),
     );
   }
