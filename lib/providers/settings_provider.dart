@@ -35,7 +35,7 @@ class SettingsProvider with ChangeNotifier {
       distanceUnits: "miles",
       notification: true,
       radius: 20,
-      vendor: "Fish Vendor",
+      vendor: "All",
     );
     _location = Location();
     _latLng = const LatLng(7.066255, 125.616155);

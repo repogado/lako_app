@@ -11,6 +11,7 @@ class User {
   String? latitude;
   String? longitude;
   bool? isOnline;
+  bool? isBlocked;
   String? locationUpdatedAt;
   bool? isStaff;
   bool? isActive;
@@ -35,6 +36,7 @@ class User {
       this.latitude,
       this.longitude,
       this.isOnline,
+      this.isBlocked,
       this.locationUpdatedAt,
       this.isStaff,
       this.isActive,
@@ -58,6 +60,7 @@ class User {
     latitude = json['latitude'];
     longitude = json['longitude'];
     isOnline = json['is_online'];
+    isBlocked = json['is_blocked'];
     locationUpdatedAt = json['location_updated_at'];
     isStaff = json['is_staff'];
     isActive = json['is_active'];
@@ -83,6 +86,7 @@ class User {
     data['latitude'] = this.latitude;
     data['longitude'] = this.longitude;
     data['is_online'] = this.isOnline;
+    data['is_blocked'] = this.isBlocked;
     data['location_updated_at'] = this.locationUpdatedAt;
     data['is_staff'] = this.isStaff;
     data['is_active'] = this.isActive;
@@ -107,6 +111,7 @@ class User {
     String? latitude,
     String? longitude,
     bool? isOnline,
+    bool? isBlocked,
     String? locationUpdatedAt,
     bool? isStaff,
     bool? isActive,
@@ -130,6 +135,7 @@ class User {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       isOnline: isOnline ?? this.isOnline,
+      isBlocked: isBlocked ?? this.isBlocked,
       locationUpdatedAt: locationUpdatedAt ?? this.locationUpdatedAt,
       isStaff: isStaff ?? this.isStaff,
       isActive: isActive ?? this.isActive,

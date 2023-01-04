@@ -4,7 +4,14 @@ import 'package:lako_app/providers/settings_provider.dart';
 import 'package:provider/provider.dart';
 
 class VendorSelectionScreen extends StatefulWidget {
-  const VendorSelectionScreen({Key? key}) : super(key: key);
+  final String? id;
+  final Function onBookTap;
+
+  const VendorSelectionScreen({
+    required this.id,
+    required this.onBookTap,
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<VendorSelectionScreen> createState() => _VendorSelectionScreenState();
@@ -12,6 +19,7 @@ class VendorSelectionScreen extends StatefulWidget {
 
 class _VendorSelectionScreenState extends State<VendorSelectionScreen> {
   List<String> list = <String>[
+    'All',
     'Fish Vendor',
     'Fruit Vendor',
     'Taho Vendor',
@@ -37,8 +45,11 @@ class _VendorSelectionScreenState extends State<VendorSelectionScreen> {
           for (var i in list)
             ListTile(
               title: Text(i),
+              tileColor:
+                  _settingsProvider.settings.vendor == i ? Colors.amber : null,
               onTap: () {
                 _settingsProvider.setVendor(i);
+                widget.onBookTap(i);
                 Navigator.pop(context);
               },
             ),

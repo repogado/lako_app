@@ -185,6 +185,18 @@ class AuthService {
       }
     }
   }
+
+  Future<User?> getUserDetails(int id) async {
+    try {
+      String url = 'user/$id/';
+      Response<Map> response = await dio.get(url);
+      Map<String, dynamic> res = response.data!['data'];
+      User user = User.fromJson(res);
+      return user;
+    } catch (e) {
+      return null;
+    }
+  }
 }
 
 List getLastNameFirstName(String fullName) {

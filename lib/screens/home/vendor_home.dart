@@ -9,6 +9,7 @@ import 'package:lako_app/models/user.dart';
 import 'package:lako_app/providers/auth_provider.dart';
 import 'package:lako_app/providers/settings_provider.dart';
 import 'package:lako_app/screens/home/transaction_container.dart';
+import 'package:lako_app/services/auth_service.dart';
 import 'package:lako_app/utils/calc_radius.dart';
 import 'package:lako_app/widgets/buttons/def_button.dart';
 import 'package:lako_app/widgets/dialogs/booking_dialog.dart';
@@ -48,6 +49,7 @@ class _VendorHomeScreenState extends State<VendorHomeScreen> {
     super.initState();
     WidgetsBinding.instance!.addPostFrameCallback((_) async {
       AuthProvider auth = Provider.of<AuthProvider>(context, listen: false);
+      await FirebaseMessaging.instance.deleteToken();
       await FirebaseMessaging.instance
           .subscribeToTopic(auth.user.id.toString());
       _listenForeground();
@@ -60,7 +62,7 @@ class _VendorHomeScreenState extends State<VendorHomeScreen> {
       if (!_serviceEnabled) {
         _serviceEnabled = await _tempSettingsProvider.location.serviceEnabled();
         if (!_serviceEnabled) {
-          return; 
+          return;
         }
       }
 
@@ -183,7 +185,14 @@ class _VendorHomeScreenState extends State<VendorHomeScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(20),
                     child: DefButton(
-                      onPress: () {
+                      onPress: () async {
+                        // User? useData = await AuthService()
+                        //     .getUserDetails(_authProvider.user.id!);
+                        // if (_authProvider.user.isBlocked!) {
+                        //   showInfoDialog(context, "Account Blocked",
+                        //       "Oops! Seems that your account is currently blocked. For details why this might happened please do message us.");
+                        //   return;
+                        // }
                         _authProvider.setVendorOnlineOffline(
                           context,
                           _settingsProvider.latLng,
@@ -193,6 +202,16 @@ class _VendorHomeScreenState extends State<VendorHomeScreen> {
                           ? "GO OFFLINE"
                           : "GO ONLINE",
                     ),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.topRight,
+                  child: IconButton(
+                    color: Colors.red,
+                    icon: const Icon(Icons.location_searching_outlined),
+                    onPressed: () {
+                      _settingsProvider.goToCurrentLocation();
+                    },
                   ),
                 ),
                 if (_authProvider.connectedUser.id != null)

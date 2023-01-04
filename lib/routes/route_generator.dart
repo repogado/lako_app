@@ -35,7 +35,12 @@ class RouteGenerator {
       case '/home':
         return MaterialPageRoute(builder: (context) => HomeScreen());
       case '/vendor_selection':
-        return MaterialPageRoute(builder: (context) => VendorSelectionScreen());
+        final args = settings.arguments as ScreenArguments;
+        return MaterialPageRoute(
+            builder: (context) => VendorSelectionScreen(
+                  id: args.id,
+                  onBookTap: args.onBookTap,
+                ));
       case '/home_vendor':
         return MaterialPageRoute(builder: (context) => VendorHomeScreen());
       case '/vendor_store':

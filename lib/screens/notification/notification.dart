@@ -29,18 +29,21 @@ class _NotificationScreenState extends State<NotificationScreen> {
         Provider.of<NotificationProvider>(context, listen: true);
     return Scaffold(
       appBar: AppBar(title: Text("Notification")),
-      body: Column(
-        children:
-            List.generate(_notificationProvider.notifications.length, (index) {
-          return ListTile(
-            leading: Icon(
-              Icons.storefront_sharp,
-              size: 50,
-            ),
-            title: Text(_notificationProvider.notifications[index].title),
-            subtitle: Text(_notificationProvider.notifications[index].subTitle),
-          );
-        }),
+      body: SingleChildScrollView(
+        child: Column(
+          children: List.generate(_notificationProvider.notifications.length,
+              (index) {
+            return ListTile(
+              leading: Icon(
+                Icons.storefront_sharp,
+                size: 50,
+              ),
+              title: Text(_notificationProvider.notifications[index].title),
+              subtitle:
+                  Text(_notificationProvider.notifications[index].subTitle),
+            );
+          }),
+        ),
       ),
       // drawer: MyDrawer().drawer(context, 'notification'),
     );

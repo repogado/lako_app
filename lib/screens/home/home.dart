@@ -47,6 +47,9 @@ class _HomeScreenState extends State<HomeScreen> {
   late AuthProvider _authProvider;
   late NotificationProvider _notificationProvider;
 
+  DatabaseReference onLineVendorsRef =
+      FirebaseDatabase.instance.ref("lako/onlineVendors/");
+
   @override
   void initState() {
     // TODO: implement initState
@@ -54,6 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     WidgetsBinding.instance!.addPostFrameCallback((_) async {
       AuthProvider auth = Provider.of<AuthProvider>(context, listen: false);
+      await FirebaseMessaging.instance.deleteToken();
       await FirebaseMessaging.instance.subscribeToTopic('nearbyVendor');
       await FirebaseMessaging.instance
           .subscribeToTopic(auth.user.id.toString());
@@ -159,12 +163,22 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text("My Location"),
         actions: [
-          // IconButton(
-          //   onPressed: () {
-          //     Navigator.of(context).pushNamed('/vendor_selection');
-          //   },
-          //   icon: Icon(Icons.search),
-          // ),
+          IconButton(
+            onPressed: () {
+              // Navigator.of(context).pushNamed('/vendor_selection');
+              Navigator.pushNamed(
+                context,
+                '/vendor_selection',
+                arguments: ScreenArguments(
+                  't',
+                  (i) {
+                    _filterVendorMarker(i);
+                  },
+                ),
+              );
+            },
+            icon: Icon(Icons.filter_alt_rounded),
+          ),
           IconButton(
             onPressed: () {
               Navigator.of(context).pushNamed('/settings');
@@ -283,10 +297,59 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _filterVendorMarker(String sel) async {
+    final snapshot = await onLineVendorsRef.get();
+
+    if (snapshot.exists) {
+      setState(() {
+        markers.clear();
+      });
+      final data = snapshot.value as Map;
+      data.forEach((key, values) {
+        LatLng latLng =
+            LatLng(values['data']['latitude'], values['data']['longitude']);
+        final String keyId = key.toString();
+        final MarkerId markerId = MarkerId(keyId);
+        final Marker marker = Marker(
+            markerId: markerId,
+            position: latLng,
+            infoWindow: InfoWindow(
+              title: values['data']['vendorType'],
+            ),
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueGreen),
+            onTap: () {
+              // Navigator.push(context, route)
+              Navigator.pushNamed(
+                context,
+                '/vendor_store',
+                arguments: ScreenArguments(
+                  keyId,
+                  (id) {
+                    _listenToVendor(int.parse(id));
+                    showFindingDialog(context, "Wating for book to be accepted",
+                        () {
+                      Navigator.pop(context);
+                    });
+                  },
+                ),
+              );
+            });
+        if (values['data']['vendorType'] == _settingsProvider.settings.vendor ||
+            _settingsProvider.settings.vendor == 'All') {
+          setState(() {
+            markers[markerId] = marker;
+          });
+        }
+      });
+
+      // final Marker marker = Marker(markerId: event.snapshot., position: latLng);
+    }
+  }
+
+
   void _listenToAllVendorsOnline() {
-    DatabaseReference ref =
-        FirebaseDatabase.instance.ref("lako/onlineVendors/");
-    ref.onValue.listen((DatabaseEvent event) async {
+    onLineVendorsRef.onValue.listen((DatabaseEvent event) async {
       if (_authProvider.connectedUser.id != null) {
         setState(() {
           markers = {};
@@ -325,9 +388,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 );
               });
-          setState(() {
-            markers[markerId] = marker;
-          });
+          if (values['data']['vendorType'] ==
+                  _settingsProvider.settings.vendor ||
+              _settingsProvider.settings.vendor == 'All') {
+            setState(() {
+              markers[markerId] = marker;
+            });
+          }
         });
 
         // final Marker marker = Marker(markerId: event.snapshot., position: latLng);

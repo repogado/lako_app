@@ -177,6 +177,15 @@ class AuthProvider with ChangeNotifier {
     _user = _user.copyWith(longitude: latLng.longitude.toString());
     DatabaseReference ref =
         FirebaseDatabase.instance.ref("lako/users/${_user.id}");
+
+    final snapshot = await ref.get();
+
+    if (snapshot.exists) {
+      Map<String, dynamic>? value =
+          jsonDecode(jsonEncode(snapshot.value)) as Map<String, dynamic>?;
+      User userData = User.fromJson(value!);
+      _user = _user.copyWith(isBlocked: userData.isBlocked);
+    }
     await ref.set(_user.toJson());
 
     if (_user.type == 'vendor' && _isVendorOnline) {
@@ -311,7 +320,7 @@ class AuthProvider with ChangeNotifier {
 
     Map<dynamic, dynamic>? values = {};
 
-    if(snapshot.exists){
+    if (snapshot.exists) {
       print('test');
       values = snapshot.value as Map?;
     }

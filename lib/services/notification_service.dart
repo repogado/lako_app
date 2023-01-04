@@ -54,7 +54,10 @@ class NotificationService {
 
     DatabaseReference ref2 = FirebaseDatabase.instance.ref("lako/favorites/");
     final snapshot = await ref2.get();
-    Map<dynamic, dynamic>? values = snapshot.value as Map?;
+
+    if(snapshot.exists ){
+          Map<dynamic, dynamic>? values = snapshot.value as Map?;
+
     values!.forEach((key, value) {
       Map<dynamic, dynamic>? ids = value as Map?;
       ids!.forEach((key2, value) {
@@ -63,6 +66,8 @@ class NotificationService {
         }
       });
     });
+    }
+
     return allIds;
   }
 }

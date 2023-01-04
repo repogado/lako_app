@@ -51,7 +51,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     super.initState();
 
     WidgetsBinding.instance!.addPostFrameCallback((_) async {
-      await FirebaseMessaging.instance.subscribeToTopic('nearbyVendor');
+      // await FirebaseMessaging.instance.subscribeToTopic('nearbyVendor');
       _listenForeground();
       _listenBackground();
       bool _serviceEnabled;
